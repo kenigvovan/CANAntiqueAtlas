@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CANAntiqueAtlas", "CANAntiqueAtlas\CANAntiqueAtlas\CANAntiqueAtlas.csproj", "{E5204422-7DE4-4F66-B6A7-8020E48E244F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CakeBuild", "CANAntiqueAtlas\ZZCakeBuild\CakeBuild.csproj", "{4D022885-69C3-494B-836B-24BBE4F83C52}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E5204422-7DE4-4F66-B6A7-8020E48E244F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5204422-7DE4-4F66-B6A7-8020E48E244F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5204422-7DE4-4F66-B6A7-8020E48E244F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5204422-7DE4-4F66-B6A7-8020E48E244F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D022885-69C3-494B-836B-24BBE4F83C52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D022885-69C3-494B-836B-24BBE4F83C52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D022885-69C3-494B-836B-24BBE4F83C52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D022885-69C3-494B-836B-24BBE4F83C52}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8717E09D-FA2F-424F-BBA1-C379C5E2AC53}
+	EndGlobalSection
+EndGlobal

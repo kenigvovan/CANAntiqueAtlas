@@ -1,0 +1,133 @@
+{
+	"code": "canemptyatlas",
+	"class": "CANItemAtlas",
+	"maxstacksize": 1,
+	"behaviors": [
+		{
+			"name": "GroundStorable",
+			"properties": {
+				"layout": "Quadrants",
+				"collisionBox": {
+					"x1": 0,
+					"y1": 0,
+					"z1": 0,
+					"x2": 1,
+					"y2": 0.125,
+					"z2": 1
+				}
+			}
+		}
+	],
+	"creativeinventory": {
+		"general": [ "*" ],
+		"items": [ "*" ],
+		"physicalmap": [ "*" ]
+	},
+	"shape": { "base": "game:block/clutter/bookshelves/small-normal" },
+	"textures": {
+		"cover": { "base": "canantiqueatlas:item/mapbook" }
+	},
+	"storageFlags": 257,
+	"heldTpIdleAnimation": "holdinglanternrighthand",
+	"heldLeftTpIdleAnimation": "holdinglanternlefthand",
+	"attributes": {
+		"displaycaseable": true,
+		"shelvable": true,
+		"bookshelveable": true,
+		"editable": false,
+		"readable": false,
+		"groundStorageTransform": {
+			"translation": {
+				"x": 0.12,
+				"y": 0,
+				"z": -0.04
+			},
+			"rotation": {
+				"x": 0,
+				"y": 35,
+				"z": 90
+			},
+			"origin": {
+				"x": 0.5,
+				"y": 0.05,
+				"z": 0.5
+			}
+		}
+	},
+	"guiTransform": {
+		"translation": {
+			"x": 0,
+			"y": 0,
+			"z": 0
+		},
+		"rotation": {
+			"x": -180,
+			"y": 123,
+			"z": 33
+		},
+		"origin": {
+			"x": 0.48,
+			"y": 0.21,
+			"z": 0.5
+		},
+		"scaleXyz": {
+			"x": -3.23,
+			"y": 3.23,
+			"z": 3.23
+		}
+	},
+	"tpHandTransform": {
+		"translation": {
+			"x": -0.89,
+			"y": -0.1,
+			"z": -0.7
+		},
+		"rotation": {
+			"x": 45,
+			"y": -180,
+			"z": 140
+		},
+		"origin": {
+			"x": 0.5,
+			"y": 0.1,
+			"z": 0.5
+		},
+		"scale": 0.7
+	},
+	"tpOffHandTransform": {
+		"translation": {
+			"x": -0.85,
+			"y": -0.1,
+			"z": -0.85
+		},
+		"rotation": {
+			"x": 146,
+			"y": 0,
+			"z": -37
+		},
+		"origin": {
+			"x": 0.5,
+			"y": 0.1,
+			"z": 0.5
+		},
+		"scale": 0.7
+	},
+	"groundTransform": {
+		"translation": {
+			"x": 0,
+			"y": 0,
+			"z": 0
+		},
+		"rotation": {
+			"x": 0,
+			"y": 0,
+			"z": 90
+		},
+		"origin": {
+			"x": 0.41,
+			"y": 0,
+			"z": 0.5
+		},
+		"scale": 4
+	}
+}
