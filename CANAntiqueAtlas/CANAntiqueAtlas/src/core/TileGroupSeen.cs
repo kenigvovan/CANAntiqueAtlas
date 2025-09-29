@@ -4,23 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CANAntiqueAtlas.src.util;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using Vintagestory.GameContent;
-using Vintagestory.API.Datastructures;
 using ProtoBuf;
-using System.Xml.Linq;
 
 namespace CANAntiqueAtlas.src.core
 {
-    /** Represents a group of tiles that may be sent/stored as a single attribute */
-    [ProtoContract]
-    public class TileGroup: ITileStorage
+    public class TileGroupSeen: ISeenTileStorage
     {
         public static string TAG_POSITION = "p";
-	    public static string TAG_TILES = "t";
+        public static string TAG_TILES = "t";
 
-	    /** The width/height of this TileGroup */
-	    public static int CHUNK_STEP = 16;
+        /** The width/height of this TileGroup */
+        public static int CHUNK_STEP = 16;
 
         /** The area of chunks this group covers */
         [ProtoMember(2)]
@@ -28,27 +22,27 @@ namespace CANAntiqueAtlas.src.core
 
         /** The tiles in this scope */
         [ProtoMember(1)]
-        Tile[] tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
-        public TileGroup()
+        TileSeen[] tiles = new TileSeen[CHUNK_STEP * CHUNK_STEP];
+        public TileGroupSeen()
         {
             //tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
         }
-        public TileGroup(int x, int y)
+        public TileGroupSeen(int x, int y)
         {
-           // tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
+            // tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
             //scope = new Rect(0, 0, CHUNK_STEP, CHUNK_STEP);
             scope.minX = x;
             scope.minY = y;
             scope.maxX = scope.minX + CHUNK_STEP - 1;
             scope.maxY = scope.minY + CHUNK_STEP - 1;
         }
-        public void SetTile(int x, int y, Tile tile)
+        public void SetTile(int x, int y, TileSeen tile)
         {
             if (x >= scope.minX && y >= scope.minY && x <= scope.maxX && y <= scope.maxY)
             {
                 int rx = x - scope.minX;
                 int ry = y - scope.minY;
-                if((rx * CHUNK_STEP + ry) > 255)
+                if ((rx * CHUNK_STEP + ry) > 255)
                 {
                     var c = 3;
                 }
@@ -63,14 +57,14 @@ namespace CANAntiqueAtlas.src.core
             }
         }
 
-        public Tile RemoveTile(int x, int y)
+        public TileSeen RemoveTile(int x, int y)
         {
-            Tile tmp = GetTile(x, y);
+            TileSeen tmp = GetTile(x, y);
             SetTile(x, y, null);
             return tmp;
         }
 
-        public Tile GetTile(int x, int y)
+        public TileSeen GetTile(int x, int y)
         {
             if (x >= scope.minX && y >= scope.minY && x <= scope.maxX && y <= scope.maxY)
             {
@@ -91,10 +85,10 @@ namespace CANAntiqueAtlas.src.core
         }
         public override bool Equals(object obj)
         {
-            if (obj == null || !(obj is TileGroup))
+            if (obj == null || !(obj is TileGroupSeen))
 
-            return false;
-            TileGroup other = (TileGroup)obj;
+                return false;
+            TileGroupSeen other = (TileGroupSeen)obj;
             if (!scope.Equals(other.scope))
                 return false;
             int a;
@@ -103,9 +97,7 @@ namespace CANAntiqueAtlas.src.core
             {
                 for (int x = 0; x < CHUNK_STEP; x++)
                 {
-                    a = (this.tiles[x * CHUNK_STEP + y] == null) ? -1 : this.tiles[x * CHUNK_STEP + y].biomeID;
-                    b = (other.tiles[x * CHUNK_STEP + y] == null) ? -1 : other.tiles[x * CHUNK_STEP + y].biomeID;
-                    if (a != b)
+                    if (this.tiles[x * CHUNK_STEP + y] != other.tiles[x * CHUNK_STEP + y])
                         return false;
                 }
             }

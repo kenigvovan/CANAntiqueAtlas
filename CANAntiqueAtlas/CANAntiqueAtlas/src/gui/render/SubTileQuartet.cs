@@ -23,10 +23,10 @@ namespace CANAntiqueAtlas.src.gui.render
 	     * 0 1
 	     * 2 3
 	     */
-        private SubTile[] array;
+        public SubTile[] array;
 	
-	    public SubTileQuartet(): this(new SubTile(Part.BOTTOM_RIGHT), new SubTile(Part.BOTTOM_LEFT),
-                       new SubTile(Part.TOP_RIGHT), new SubTile(Part.TOP_LEFT))
+	    public SubTileQuartet(): this(new SubTile(Part.TOP_LEFT), new SubTile(Part.TOP_RIGHT),
+                       new SubTile(Part.BOTTOM_LEFT), new SubTile(Part.BOTTOM_RIGHT))
         {
             
         }

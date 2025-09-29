@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CANAntiqueAtlas.src.core;
 using ProtoBuf;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -28,43 +29,6 @@ namespace CANAntiqueAtlas.src.gui
     // and have the chunk intmap cached client side
     public class CANChunkMapLayer : CANRGBMapLayer
     {
-        public static Dictionary<EnumBlockMaterial, string> defaultMapColorCodes = new Dictionary<EnumBlockMaterial, string>()
-        {
-            { EnumBlockMaterial.Soil, "land" },
-            { EnumBlockMaterial.Sand, "desert" },
-            { EnumBlockMaterial.Ore, "land" },
-            { EnumBlockMaterial.Gravel, "desert" },
-            { EnumBlockMaterial.Stone, "land" },
-            { EnumBlockMaterial.Leaves, "forest" },
-            { EnumBlockMaterial.Plant, "plant" },
-            { EnumBlockMaterial.Wood, "forest" },
-            { EnumBlockMaterial.Snow, "glacier" },
-            { EnumBlockMaterial.Liquid, "lake" },
-            { EnumBlockMaterial.Ice, "glacier" },
-            { EnumBlockMaterial.Lava, "lava" }
-        };
-
-        public static Vintagestory.API.Datastructures.OrderedDictionary<string, string> hexColorsByCode = new()
-        {
-            { "ink", "#483018" },
-            { "settlement", "#856844" },
-            { "wateredge", "#483018" },
-            { "land", "#AC8858" },
-            { "desert", "#C4A468" },
-            { "forest", "#98844C" },
-            { "road", "#805030" },
-            { "plant", "#808650" },
-            { "lake", "#CCC890" },
-            { "ocean", "#CCC890" },
-            { "glacier", "#E0E0C0" },
-            { "devastation", "#755c3c" }
-        };
-
-        public Vintagestory.API.Datastructures.OrderedDictionary<string, int> colorsByCode = new() { };
-        int[] colors;
-
-        public byte[] block2Color;
-
         const int chunksize = GlobalConstants.ChunkSize;
         IWorldChunk[] chunksTmp;
 
@@ -83,7 +47,6 @@ namespace CANAntiqueAtlas.src.gui
 
         public override string LayerGroupCode => "terrain";
 
-        MapDB mapdb;
         ICoreClientAPI capi;
 
         bool colorAccurate;
@@ -100,40 +63,13 @@ namespace CANAntiqueAtlas.src.gui
 
         public CANChunkMapLayer(ICoreAPI api, ICANWorldMapManager mapSink) : base(api, mapSink)
         {
-            foreach (var val in hexColorsByCode)
-            {
-                colorsByCode[val.Key] = ColorUtil.ReverseColorBytes(ColorUtil.Hex2Int(val.Value));
-            }
-
-            api.Event.ChunkDirty += Event_OnChunkDirty;
+            //api.Event.ChunkDirty += Event_OnChunkDirty;
             capi = api as ICoreClientAPI;
-
-            if (api.Side == EnumAppSide.Server)
-            {
-                (api as ICoreServerAPI).Event.DidPlaceBlock += Event_DidPlaceBlock;
-            }
 
             if (api.Side == EnumAppSide.Client)
             {
-                api.World.Logger.Notification("Loading world map cache db...");
-                mapdb = new MapDB(api.World.Logger);
-                string errorMessage = null;
-                string mapdbfilepath = getMapDbFilePath();
-                mapdb.OpenOrCreate(mapdbfilepath, ref errorMessage, true, true, false);
-                if (errorMessage != null)
-                {
-                    throw new Exception(string.Format("Cannot open {0}, possibly corrupted. Please fix manually or delete this file to continue playing", mapdbfilepath));
-                }
 
                 api.ChatCommands.GetOrCreate("map")
-                    .BeginSubCommand("purgedb")
-                        .WithDescription("purge the map db")
-                        .HandleWith(_ =>
-                        {
-                            mapdb.Purge();
-                            return TextCommandResult.Success("Ok, db purged");
-                        })
-                    .EndSubCommand()
                     .BeginSubCommand("redraw")
                         .WithDescription("Redraw the map")
                         .HandleWith(OnMapCmdRedraw)
@@ -158,88 +94,39 @@ namespace CANAntiqueAtlas.src.gui
             }
             return TextCommandResult.Success("Redrawing map...");
         }
-
-        private void Event_DidPlaceBlock(IServerPlayer byPlayer, int oldblockId, BlockSelection blockSel, ItemStack withItemStack)
-        {
-            IMapChunk mapchunk = api.World.BlockAccessor.GetMapChunkAtBlockPos(blockSel.Position);
-            if (mapchunk == null) return;
-
-            int lx = blockSel.Position.X % chunksize;
-            int lz = blockSel.Position.Z % chunksize;
-
-            int y = mapchunk.RainHeightMap[lz * chunksize + lx];
-            int ly = y % chunksize;
-
-
-            IWorldChunk chunk = api.World.BlockAccessor.GetChunkAtBlockPos(blockSel.Position.X, y, blockSel.Position.Z);
-            if (chunk == null) return;
-
-            int blockId = chunk.UnpackAndReadBlock((ly * chunksize + lz) * chunksize + lx, BlockLayersAccess.FluidOrSolid);
-
-            if (blockId == 0)
-            {
-                int cx = blockSel.Position.X / chunksize;
-                int cz = blockSel.Position.Z / chunksize;
-                api.World.Logger.Notification("Huh. Found air block in rain map at chunk pos {0}/{1}. That seems invalid, will regenerate rain map", cx, cz);
-                rebuildRainmap(cx, cz);
-            }
-        }
-
-        private void Event_OnChunkDirty(Vec3i chunkCoord, IWorldChunk chunk, EnumChunkDirtyReason reason)
+        public void Event_OnChunkDataReceived(Dictionary<int, HashSet<(int, int, Tile)>> NewMapTiles)
         {
             lock (chunksToGenLock)
             {
                 if (!mapSink.IsOpened) return;
+                foreach(var atl in NewMapTiles)
+                {
+                    foreach (var it in atl.Value)
+                    {
+                        FastVec2i tmpMccoord = new FastVec2i(it.Item1, it.Item2);
+                        //FastVec2i tmpCoord = new FastVec2i(chunkCoord.X * 32, chunkCoord.Y * 32);
 
-                FastVec2i tmpMccoord = new FastVec2i(chunkCoord.X / CANMultiChunkMapComponent.ChunkLen, chunkCoord.Z / CANMultiChunkMapComponent.ChunkLen);
-                FastVec2i tmpCoord = new FastVec2i(chunkCoord.X, chunkCoord.Z);
+                        //if (!loadedMapData.ContainsKey(tmpMccoord) /*&& !curVisibleChunks.Contains(tmpCoord)*/) continue;
 
-                if (!loadedMapData.ContainsKey(tmpMccoord) && !curVisibleChunks.Contains(tmpCoord)) return;
-
-                chunksToGen.Enqueue(new FastVec2i(chunkCoord.X, chunkCoord.Z));
-                chunksToGen.Enqueue(new FastVec2i(chunkCoord.X, chunkCoord.Z - 1));
-                chunksToGen.Enqueue(new FastVec2i(chunkCoord.X - 1, chunkCoord.Z));
-                chunksToGen.Enqueue(new FastVec2i(chunkCoord.X, chunkCoord.Z + 1));
-                chunksToGen.Enqueue(new FastVec2i(chunkCoord.X + 1, chunkCoord.Z + 1));
+                        chunksToGen.Enqueue(tmpMccoord);
+                        chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X, tmpMccoord.Y - 1));
+                        chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X - 1, tmpMccoord.Y));
+                        chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X, tmpMccoord.Y + 1));
+                        chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y + 1));
+                    }
+                }
+                
+                /*chunksToGen.Enqueue(new FastVec2i(chunkCoord.X, chunkCoord.Y - 1));
+                chunksToGen.Enqueue(new FastVec2i(chunkCoord.X - 1, chunkCoord.Y));
+                chunksToGen.Enqueue(new FastVec2i(chunkCoord.X, chunkCoord.Y + 1));
+                chunksToGen.Enqueue(new FastVec2i(chunkCoord.X + 1, chunkCoord.Y + 1));*/
             }
         }
-
 
         public override void OnLoaded()
         {
             if (api.Side == EnumAppSide.Server) return;
             chunksTmp = new IWorldChunk[api.World.BlockAccessor.MapSizeY / chunksize];
-
-            colors = new int[colorsByCode.Count];
-            for (int i = 0; i < colors.Length; i++)
-            {
-                colors[i] = colorsByCode.GetValueAtIndex(i);
-            }
-
-            var blocks = api.World.Blocks;
-            block2Color = new byte[blocks.Count];
-            for (int i = 0; i < block2Color.Length; i++)
-            {
-                var block = blocks[i];
-                string colorcode = "land";
-                if (block?.Attributes != null)
-                {
-                    colorcode = block.Attributes["mapColorCode"].AsString();
-                    if (colorcode == null)
-                    {
-                        if (!defaultMapColorCodes.TryGetValue(block.BlockMaterial, out colorcode))
-                        {
-                            colorcode = "land";
-                        }
-                    }
-                }
-
-                block2Color[i] = (byte)colorsByCode.IndexOfKey(colorcode);
-                if (colorsByCode.IndexOfKey(colorcode) < 0)
-                {
-                    throw new Exception("No color exists for color code " + colorcode);
-                }
-            }
         }
 
         public override void OnMapOpenedClient()
@@ -275,7 +162,6 @@ namespace CANAntiqueAtlas.src.gui
         public override void OnShutDown()
         {
             CANMultiChunkMapComponent.tmpTexture?.Dispose();
-            mapdb?.Dispose();
         }
 
         float mtThread1secAccum = 0f;
@@ -290,6 +176,7 @@ namespace CANAntiqueAtlas.src.gui
             genAccum = 0;
 
             int quantityToGen = chunksToGen.Count;
+            var dim = CANAntiqueAtlas.ClientMapInfoData.GetDimensionData();
             while (quantityToGen > 0)
             {
                 if (mapSink.IsShuttingDown) break;
@@ -303,18 +190,29 @@ namespace CANAntiqueAtlas.src.gui
                     cord = chunksToGen.Dequeue();
                 }
 
-                if (!api.World.BlockAccessor.IsValidPos(cord.X * chunksize, 1, cord.Y * chunksize)) continue;
-
+                //if (!api.World.BlockAccessor.IsValidPos(cord.X * chunksize, 1, cord.Y * chunksize)) continue;
+                if(this.loadedMapData.ContainsKey(cord))
+                {
+                    continue;
+                }
+                var tile = dim.GetTile(cord.X, cord.Y);
+                if(tile == null)
+                {
+                    continue;
+                }
+                readyMapPieces.Enqueue(new ReadyMapPiece() { Pixels = null, Cord = cord });
+                //continue;
                 IMapChunk mc = api.World.BlockAccessor.GetMapChunk(cord.X, cord.Y);
                 if (mc == null)
                 {
                     try
                     {
-                        MapPieceDB piece = mapdb.GetMapPiece(cord);
+                        readyMapPieces.Enqueue(new ReadyMapPiece() { Pixels = null, Cord = cord });
+                        /*MapPieceDB piece = mapdb.GetMapPiece(cord);
                         if (piece?.Pixels != null)
                         {
                             loadFromChunkPixels(cord, piece.Pixels);
-                        }
+                        }*/
                     }
                     catch (ProtoBuf.ProtoException)
                     {
@@ -328,8 +226,8 @@ namespace CANAntiqueAtlas.src.gui
                     continue;
                 }
 
-                int[] tintedPixels = GenerateChunkImage(cord, mc, colorAccurate);
-                if (tintedPixels == null)
+                //int[] tintedPixels = GenerateChunkImage(cord, mc, colorAccurate);
+               // if (tintedPixels == null)
                 {
                     lock (chunksToGenLock)
                     {
@@ -339,15 +237,14 @@ namespace CANAntiqueAtlas.src.gui
                     continue;
                 }
 
-                toSaveList[cord.Copy()] = new MapPieceDB() { Pixels = tintedPixels };
+               // toSaveList[cord.Copy()] = new MapPieceDB() { Pixels = tintedPixels };
 
-                loadFromChunkPixels(cord, tintedPixels);
+                //loadFromChunkPixels(cord, tintedPixels);
             }
 
             if (toSaveList.Count > 100 || diskSaveAccum > 4f)
             {
                 diskSaveAccum = 0;
-                mapdb.SetMapPieces(toSaveList);
                 toSaveList.Clear();
             }
         }
@@ -358,7 +255,7 @@ namespace CANAntiqueAtlas.src.gui
         {
             if (!readyMapPieces.IsEmpty)
             {
-                int q = Math.Min(readyMapPieces.Count, 200);
+                int q = Math.Min(readyMapPieces.Count, 1);
                 List<CANMultiChunkMapComponent> modified = new();
                 while (q-- > 0)
                 {
@@ -372,15 +269,15 @@ namespace CANAntiqueAtlas.src.gui
                             loadedMapData[mcord] = mccomp = new CANMultiChunkMapComponent(api as ICoreClientAPI, baseCord);
                         }
 
-                        mccomp.setChunk(mappiece.Cord.X - baseCord.X, mappiece.Cord.Y - baseCord.Y, mappiece.Pixels);
-                        modified.Add(mccomp);
+                        mccomp.setChunk(mappiece.Cord.X - baseCord.X, mappiece.Cord.Y - baseCord.Y);
+                       // modified.Add(mccomp);
                     }
                 }
 
-                foreach (var mccomp in modified) mccomp.FinishSetChunks();
+               // foreach (var mccomp in modified) mccomp.FinishSetChunks();
             }
 
-            mtThread1secAccum += dt;
+            /*mtThread1secAccum += dt;
             if (mtThread1secAccum > 1)
             {
                 List<FastVec2i> toRemove = new List<FastVec2i>();
@@ -397,7 +294,7 @@ namespace CANAntiqueAtlas.src.gui
                         {
                             FastVec2i mccord = val.Key;
                             toRemove.Add(mccord);
-                            mcmp.ActuallyDispose();
+                            //mcmp.ActuallyDispose();
                         }
                     }
                     else
@@ -412,7 +309,7 @@ namespace CANAntiqueAtlas.src.gui
                 }
 
                 mtThread1secAccum = 0;
-            }
+            }*/
         }
 
         public override void Render(CANGuiElementMap mapElem, float dt)
@@ -444,14 +341,6 @@ namespace CANAntiqueAtlas.src.gui
                 val.Value.OnMouseUpOnElement(args, mapElem);
             }
         }
-
-        void loadFromChunkPixels(FastVec2i cord, int[] pixels)
-        {
-            readyMapPieces.Enqueue(new ReadyMapPiece() { Pixels = pixels, Cord = cord });
-        }
-
-
-
         public override void OnViewChangedClient(List<FastVec2i> nowVisible, List<FastVec2i> nowHidden)
         {
             foreach (var val in nowVisible)
@@ -463,7 +352,7 @@ namespace CANAntiqueAtlas.src.gui
             {
                 curVisibleChunks.Remove(val);
             }
-
+            //HERE
             lock (chunksToGenLock)
             {
                 foreach (FastVec2i cord in nowVisible)
@@ -494,277 +383,6 @@ namespace CANAntiqueAtlas.src.gui
                     mc.unsetChunk(cord.X % CANMultiChunkMapComponent.ChunkLen, cord.Y % CANMultiChunkMapComponent.ChunkLen);
                 }
             }
-        }
-
-
-
-        private static bool isLake(Block block)
-        {
-            return block.BlockMaterial == EnumBlockMaterial.Liquid || (block.BlockMaterial == EnumBlockMaterial.Ice && block.Code.Path != "glacierice");
-        }
-
-        [ThreadStatic]
-        static byte[] shadowMapReusable;
-        [ThreadStatic]
-        static byte[] shadowMapBlurReusable;
-        public int[] GenerateChunkImage(FastVec2i chunkPos, IMapChunk mc, bool colorAccurate = false)
-        {
-            BlockPos tmpPos = new BlockPos();
-            Vec2i localpos = new Vec2i();
-
-            // Prefetch chunks
-            for (int cy = 0; cy < chunksTmp.Length; cy++)
-            {
-                chunksTmp[cy] = capi.World.BlockAccessor.GetChunk(chunkPos.X, cy, chunkPos.Y);
-                if (chunksTmp[cy] == null || !(chunksTmp[cy] as IClientChunk).LoadedFromServer) return null;
-            }
-
-            int[] tintedImage = new int[chunksize * chunksize];
-
-            // Prefetch map chunks
-            IMapChunk chunkNeibNW = capi.World.BlockAccessor.GetMapChunk(chunkPos.X - 1, chunkPos.Y - 1);
-            IMapChunk chunkNeibW = capi.World.BlockAccessor.GetMapChunk(chunkPos.X - 1, chunkPos.Y);
-            IMapChunk chunkNeibN = capi.World.BlockAccessor.GetMapChunk(chunkPos.X, chunkPos.Y - 1);
-
-            shadowMapReusable ??= new byte[tintedImage.Length];
-            byte[] shadowMap = shadowMapReusable;
-            for (int i = 0; i < shadowMap.Length; i += 4)
-            {
-                shadowMap[i + 0] = 128;
-                shadowMap[i + 1] = 128;
-                shadowMap[i + 2] = 128;
-                shadowMap[i + 3] = 128;
-            }
-
-            for (int i = 0; i < tintedImage.Length; i++)
-            {
-                int y = mc.RainHeightMap[i];
-                int cy = y / chunksize;
-                if (cy >= chunksTmp.Length) continue;
-
-                MapUtil.PosInt2d(i, chunksize, localpos);
-                int lx = localpos.X;
-                int lz = localpos.Y;
-
-                float b = 1;
-                int leftTop, rightTop, leftBot;
-
-                IMapChunk leftTopMapChunk = mc;
-                IMapChunk rightTopMapChunk = mc;
-                IMapChunk leftBotMapChunk = mc;
-
-                int topX = lx - 1;
-                int botX = lx;
-                int leftZ = lz - 1;
-                int rightZ = lz;
-
-                if (topX < 0 && leftZ < 0)
-                {
-                    leftTopMapChunk = chunkNeibNW;
-                    rightTopMapChunk = chunkNeibW;
-                    leftBotMapChunk = chunkNeibN;
-                }
-                else
-                {
-                    if (topX < 0)
-                    {
-                        leftTopMapChunk = chunkNeibW;
-                        rightTopMapChunk = chunkNeibW;
-                    }
-                    if (leftZ < 0)
-                    {
-                        leftTopMapChunk = chunkNeibN;
-                        leftBotMapChunk = chunkNeibN;
-                    }
-                }
-
-                topX = GameMath.Mod(topX, chunksize);
-                leftZ = GameMath.Mod(leftZ, chunksize);
-
-                leftTop = leftTopMapChunk == null ? 0 : (y - leftTopMapChunk.RainHeightMap[leftZ * chunksize + topX]);
-                rightTop = rightTopMapChunk == null ? 0 : (y - rightTopMapChunk.RainHeightMap[rightZ * chunksize + topX]);
-                leftBot = leftBotMapChunk == null ? 0 : (y - leftBotMapChunk.RainHeightMap[leftZ * chunksize + botX]);
-
-                float slopedir = (Math.Sign(leftTop) + Math.Sign(rightTop) + Math.Sign(leftBot));
-                float steepness = Math.Max(Math.Max(Math.Abs(leftTop), Math.Abs(rightTop)), Math.Abs(leftBot));
-
-                int blockId = chunksTmp[cy].UnpackAndReadBlock(MapUtil.Index3d(lx, y % chunksize, lz, chunksize, chunksize), BlockLayersAccess.FluidOrSolid);
-                Block block = api.World.Blocks[blockId];
-
-                if (slopedir > 0) b = 1.08f + Math.Min(0.5f, steepness / 10f) / 1.25f;
-                if (slopedir < 0) b = 0.92f - Math.Min(0.5f, steepness / 10f) / 1.25f;
-
-                if (block.BlockMaterial == EnumBlockMaterial.Snow && !colorAccurate)
-                {
-                    y--;
-                    cy = y / chunksize;
-                    blockId = chunksTmp[cy].UnpackAndReadBlock(MapUtil.Index3d(localpos.X, y % chunksize, localpos.Y, chunksize, chunksize), BlockLayersAccess.FluidOrSolid);
-                    block = api.World.Blocks[blockId];
-                }
-                tmpPos.Set(chunksize * chunkPos.X + localpos.X, y, chunksize * chunkPos.Y + localpos.Y);
-
-                if (colorAccurate)
-                {
-                    int avgCol = block.GetColor(capi, tmpPos);
-                    int rndCol = block.GetRandomColor(capi, tmpPos, BlockFacing.UP, GameMath.MurmurHash3Mod(tmpPos.X, tmpPos.Y, tmpPos.Z, 30));
-                    // Why the eff is r and b flipped
-                    rndCol = ((rndCol & 0xff) << 16) | (((rndCol >> 8) & 0xff) << 8) | (((rndCol >> 16) & 0xff) << 0);
-
-                    // Add a bit of randomness to each pixel
-                    int col = ColorUtil.ColorOverlay(avgCol, rndCol, 0.6f);
-
-                    tintedImage[i] = col;
-                    shadowMap[i] = (byte)(shadowMap[i] * b);
-                }
-                else
-                {
-
-                    if (isLake(block))
-                    {
-                        // Water
-                        IWorldChunk lChunk = chunksTmp[cy];
-                        IWorldChunk rChunk = lChunk;
-                        IWorldChunk tChunk = lChunk;
-                        IWorldChunk bChunk = lChunk;
-
-                        int leftX = localpos.X - 1;
-                        int rightX = localpos.X + 1;
-                        int topY = localpos.Y - 1;
-                        int bottomY = localpos.Y + 1;
-
-                        if (leftX < 0)
-                        {
-                            lChunk = capi.World.BlockAccessor.GetChunk(chunkPos.X - 1, cy, chunkPos.Y);
-                        }
-                        if (rightX >= chunksize)
-                        {
-                            rChunk = capi.World.BlockAccessor.GetChunk(chunkPos.X + 1, cy, chunkPos.Y);
-                        }
-                        if (topY < 0)
-                        {
-                            tChunk = capi.World.BlockAccessor.GetChunk(chunkPos.X, cy, chunkPos.Y - 1);
-                        }
-                        if (bottomY >= chunksize)
-                        {
-                            bChunk = capi.World.BlockAccessor.GetChunk(chunkPos.X, cy, chunkPos.Y + 1);
-                        }
-
-                        if (lChunk != null && rChunk != null && tChunk != null && bChunk != null)
-                        {
-                            leftX = GameMath.Mod(leftX, chunksize);
-                            rightX = GameMath.Mod(rightX, chunksize);
-                            topY = GameMath.Mod(topY, chunksize);
-                            bottomY = GameMath.Mod(bottomY, chunksize);
-
-                            Block lBlock = api.World.Blocks[lChunk.UnpackAndReadBlock(MapUtil.Index3d(leftX, y % chunksize, localpos.Y, chunksize, chunksize), BlockLayersAccess.FluidOrSolid)];
-                            Block rBlock = api.World.Blocks[rChunk.UnpackAndReadBlock(MapUtil.Index3d(rightX, y % chunksize, localpos.Y, chunksize, chunksize), BlockLayersAccess.FluidOrSolid)];
-                            Block tBlock = api.World.Blocks[tChunk.UnpackAndReadBlock(MapUtil.Index3d(localpos.X, y % chunksize, topY, chunksize, chunksize), BlockLayersAccess.FluidOrSolid)];
-                            Block bBlock = api.World.Blocks[bChunk.UnpackAndReadBlock(MapUtil.Index3d(localpos.X, y % chunksize, bottomY, chunksize, chunksize), BlockLayersAccess.FluidOrSolid)];
-
-                            if (isLake(lBlock) && isLake(rBlock) && isLake(tBlock) && isLake(bBlock))
-                            {
-                                tintedImage[i] = getColor(block, localpos.X, y, localpos.Y);
-                            }
-                            else
-                            {
-                                tintedImage[i] = colorsByCode["wateredge"];
-                            }
-                        }
-                        else
-                        {
-                            // Default to water until chunks are loaded.
-                            tintedImage[i] = getColor(block, localpos.X, y, localpos.Y);
-                        }
-                    }
-                    else
-                    {
-                        shadowMap[i] = (byte)(shadowMap[i] * b);
-                        tintedImage[i] = getColor(block, localpos.X, y, localpos.Y);
-                    }
-                }
-
-
-
-            }
-
-            shadowMapBlurReusable ??= new byte[shadowMap.Length];
-            byte[] bla = shadowMapBlurReusable;
-            for (int i = 0; i < bla.Length; i += 4)
-            {
-                bla[i + 0] = shadowMap[i + 0];
-                bla[i + 1] = shadowMap[i + 1];
-                bla[i + 2] = shadowMap[i + 2];
-                bla[i + 3] = shadowMap[i + 3];
-            }
-
-            BlurTool.Blur(shadowMap, 32, 32, 2);
-            float sharpen = 1.0f;
-
-            for (int i = 0; i < shadowMap.Length; i++)
-            {
-                float b = ((int)((shadowMap[i] / 128f - 1f) * 5)) / 5f;
-                b += (((bla[i] / 128f - 1f) * 5) % 1) / 5f;
-
-                tintedImage[i] = ColorUtil.ColorMultiply3Clamped(tintedImage[i], b * sharpen + 1f) | 255 << 24;
-            }
-
-            for (int cy = 0; cy < chunksTmp.Length; cy++) chunksTmp[cy] = null;
-
-            return tintedImage;
-        }
-
-        private int getColor(Block block, int x, int y1, int y2)
-        {
-            var colorIndex = block2Color[block.Id];
-            int color = colors[colorIndex];
-            return color;
-        }
-
-        void rebuildRainmap(int cx, int cz)
-        {
-            ICoreServerAPI sapi = api as ICoreServerAPI;
-
-            int ymax = sapi.WorldManager.MapSizeY / sapi.WorldManager.ChunkSize;
-
-            IServerChunk[] column = new IServerChunk[ymax];
-            int chunksize = sapi.WorldManager.ChunkSize;
-
-            IMapChunk mapchunk = null;
-
-            for (int cy = 0; cy < ymax; cy++)
-            {
-                column[cy] = sapi.WorldManager.GetChunk(cx, cy, cz);
-                column[cy]?.Unpack_ReadOnly();
-
-                mapchunk = column[cy]?.MapChunk;
-            }
-
-            if (mapchunk == null) return;
-
-            for (int dx = 0; dx < chunksize; dx++)
-            {
-                for (int dz = 0; dz < chunksize; dz++)
-                {
-                    for (int dy = sapi.WorldManager.MapSizeY - 1; dy >= 0; dy--)
-                    {
-                        IServerChunk chunk = column[dy / chunksize];
-                        if (chunk == null) continue;
-
-                        int index = ((dy % chunksize) * chunksize + dz) * chunksize + dx;
-                        Block block = sapi.World.Blocks[chunk.Data.GetBlockId(index, BlockLayersAccess.FluidOrSolid)];
-
-                        if (!block.RainPermeable || dy == 0)
-                        {
-                            mapchunk.RainHeightMap[dz * chunksize + dx] = (ushort)dy;
-                            break;
-                        }
-                    }
-                }
-            }
-
-
-            sapi.WorldManager.ResendMapChunk(cx, cz, true);
-            mapchunk.MarkDirty();
         }
     }
 }

@@ -237,7 +237,7 @@ namespace CANAntiqueAtlas.src.gui
             return true;
         }
 
-        private bool OnHotKeyWorldMapDlg(KeyCombination comb)
+        public bool OnHotKeyWorldMapDlg(KeyCombination comb)
         {
             ToggleMap(EnumDialogType.Dialog);
             return true;
@@ -278,8 +278,6 @@ namespace CANAntiqueAtlas.src.gui
             worldMapDlg.Open(asType);
             foreach (CANMapLayer layer in MapLayers) layer.OnMapOpenedClient();
             clientChannel.SendPacket(new OnMapToggle() { OpenOrClose = true });
-
-            if (asType == EnumDialogType.HUD) capi.Settings.Bool.Set("showMinimapHud", true, false);   // Don't trigger the watcher which will call Toggle again recursively!
         }
 
         private List<string> getTabsOrdered()

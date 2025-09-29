@@ -117,7 +117,7 @@ namespace CANAntiqueAtlas.src.core
                                atlasID = atlasID,
                                data = this
                            }
-                           , player as IServerPlayer);
+                           , player.Player as IServerPlayer);
 
             this.dimensionData.syncOnPlayer(atlasID, player);
             
@@ -130,7 +130,7 @@ namespace CANAntiqueAtlas.src.core
             return false;
         }
 
-        public bool Equals(object obj)
+        public override bool Equals(object obj)
         {
             if (!(obj is AtlasData)) return false;
             AtlasData other = (AtlasData)obj;

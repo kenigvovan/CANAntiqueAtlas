@@ -46,6 +46,9 @@ namespace CANAntiqueAtlas.src.gui.render
 		SCROLLBAR_HOR = gui("scrollbar_hor.png"),
 		SCROLLBAR_VER = gui("scrollbar_ver.png"),
 		MARKER_FRAME_ON = gui("marker_frame_on.png");
-        AssetLocation TILE_FOREST = tile("forest.png");
+        public static AssetLocation TILE_FOREST = tile("forest.png"),
+            TILE_FOREST2 = tile("forest2.png"),
+            TILE_FOREST3 = tile("forest3.png");
+        public static AssetLocation TILE_TEST = tile("test.png");
     }
 }

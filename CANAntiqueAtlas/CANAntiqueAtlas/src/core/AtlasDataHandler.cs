@@ -6,7 +6,7 @@ namespace CANAntiqueAtlas.src.core
 {
     public class AtlasDataHandler
     {
-        protected static string ATLAS_DATA_PREFIX = "aAtlas_";
+        public static string ATLAS_DATA_PREFIX = "aAtlas_";
         private ConcurrentDictionary<string, AtlasData> atlasDataClientCache = new ConcurrentDictionary<string, AtlasData>();
         /** Loads data for the given atlas ID or creates a new one. */
         public AtlasData GetAtlasData(ItemStack stack, IWorldAccessor world)

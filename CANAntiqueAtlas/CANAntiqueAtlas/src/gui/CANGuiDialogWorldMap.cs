@@ -135,18 +135,22 @@ namespace CANAntiqueAtlas.src.gui
             
             //compo.Compose(true);
              List<CANMapLayer> maplayers = this.capi.ModLoader.GetModSystem<CANWorldMapManager>(true).MapLayers;
-             compo = this.capi.Gui.CreateCompo("worldmap" + dlgType.ToString(), dialogBounds).AddShadedDialogBG(bgBounds, false, 5.0, 0.75f).AddIf(dlgType == EnumDialogType.Dialog)
-                 .AddDialogTitleBar(Lang.Get("World Map", Array.Empty<object>()), new Action(this.OnTitleBarClose), null, null, null)
-                 .AddInset(mapBounds, 2, 0.85f)
-                 .EndIf()
-                 .BeginChildElements(bgBounds)
-                 .AddHoverText("", CairoFont.WhiteDetailText(), 350, mapBounds.FlatCopy(), "hoverText")
-                 .AddIf(dlgType == EnumDialogType.Dialog)
-                 .AddVerticalToggleTabs(this.tabs.ToArray(), tabBounds, new Action<int, GuiTab>(this.OnTabClicked), "verticalTabs")
-                 .EndIf()
-                 .AddInteractiveElement(new CANGuiElementMap(maplayers, this.capi, this, mapBounds, dlgType == EnumDialogType.HUD), "mapElem")
-                 .EndChildElements()
-                 .Compose(true);
+            compo = this.capi.Gui.CreateCompo("worldmap" + dlgType.ToString(), dialogBounds);
+
+            //compo.AddShadedDialogBG(bgBounds, false, 5.0, 0.75f);
+            compo.AddImageBG(bgBounds, new AssetLocation("canantiqueatlas:gui/book.png"), scale: 0.259f);
+            compo.AddIf(dlgType == EnumDialogType.Dialog)
+                //.AddDialogTitleBar(Lang.Get("World Map", Array.Empty<object>()), new Action(this.OnTitleBarClose), null, null, null)
+                .AddInset(mapBounds, 2, 0.85f)
+                .EndIf()
+                .BeginChildElements(bgBounds)
+                .AddHoverText("", CairoFont.WhiteDetailText(), 350, mapBounds.FlatCopy(), "hoverText")
+                .AddIf(dlgType == EnumDialogType.Dialog)
+                .AddVerticalToggleTabs(this.tabs.ToArray(), tabBounds, new Action<int, GuiTab>(this.OnTabClicked), "verticalTabs")
+                .EndIf()
+                .AddInteractiveElement(new CANGuiElementMap(maplayers, this.capi, this, mapBounds, dlgType == EnumDialogType.HUD), "mapElem")
+                .EndChildElements()
+                .Compose(true);
             GuiTab guiTab2 = this.tabs[0];
             List<CANMapLayer> mapLayers2 = this.MapLayers;
             bool? flag3;

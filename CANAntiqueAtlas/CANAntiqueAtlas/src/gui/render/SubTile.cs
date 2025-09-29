@@ -62,7 +62,7 @@ namespace CANAntiqueAtlas.src.gui.render
                 case Shape.SINGLE_OBJECT: return part.u;
                 case Shape.CONCAVE: return 2 + part.u;
                 case Shape.VERTICAL:
-                case Shape.CONVEX: return part.u * 3;
+                case Shape.CONVEX: return 3 * part.u;
                 case Shape.HORIZONTAL:
                 case Shape.FULL: return 2 - part.u;
                 default: return 0;

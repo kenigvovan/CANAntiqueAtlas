@@ -13,6 +13,10 @@ namespace CANAntiqueAtlas.src.gui.render
 {
     public class TextureSet: IComparable<TextureSet>
     {
+        public static TextureSet TEST = new TextureSet(false, "TEST", Textures.TILE_TEST, Textures.TILE_TEST);
+        public static TextureSet
+            FOREST = standard("FOREST", Textures.TILE_FOREST, Textures.TILE_FOREST2, Textures.TILE_FOREST3);
+            //FOREST_HILLS = standard("FOREST_HILLS", TILE_FOREST_HILLS, TILE_FOREST_HILLS2, TILE_FOREST_HILLS3),
         //TDOO PLACE DEFAULT
         /** Name of the texture pack to write in the config file. */
         public string name; 
@@ -28,24 +32,24 @@ namespace CANAntiqueAtlas.src.gui.render
 
         /** Whether the texture set is part of the standard pack. Only true for
          * static constants in this class. */
-        bool isStandard;
+        public bool isStandard;
 	
 	    private bool stitchesToNull = false;
         private bool anisotropicStitching = false;
 
-        private static TextureSet standard(string name, AssetLocation[] textures)
+        private static TextureSet standard(string name, params AssetLocation[] textures)
         {
             return new TextureSet(true, name, textures);
         }
 
-        private TextureSet(bool isStandard, string name, AssetLocation[] textures)
+        private TextureSet(bool isStandard, string name, params AssetLocation[] textures)
         {
             this.isStandard = isStandard;
             this.name = name;
             this.textures = textures;
         }
         /** Name has to be unique, it is used for equals() tests. */
-        public TextureSet(string name, AssetLocation[] textures): this(false, name, textures)
+        public TextureSet(string name, params AssetLocation[] textures): this(false, name, textures)
         {
             
         }
@@ -115,7 +119,7 @@ namespace CANAntiqueAtlas.src.gui.render
             else return stitchTo.Contains(toSet);
         }
 
-        public bool Equals(object obj)
+        public override bool Equals(object obj)
         {
             if (obj == null || !(obj is TextureSet)) {
                 return false;

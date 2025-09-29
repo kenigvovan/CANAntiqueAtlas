@@ -34,16 +34,10 @@ namespace CANAntiqueAtlas.src.core
          * a map of chunks the player has seen. This map is thread-safe. CAREFUL!
          * Don't modify chunk coordinates that are already put in the map!
          * 
-         * Key is a ShortVec2 representing the gilegroup's position in units of TileGroup.CHUNK_STEP
+         * Key is a ShortVec2 representing the tilegroup's position in units of TileGroup.CHUNK_STEP
          */
         [ProtoMember(4)]
         private ConcurrentDictionary<ShortVec2, TileGroup> tileGroups = new ConcurrentDictionary<ShortVec2, TileGroup>();
-
-        /**
-         * Maps threads to the temporary key for thread-safe access to the tile map.
-         */
-        private ConcurrentDictionary<Thread, ShortVec2> thread2KeyMap = new ConcurrentDictionary<Thread, ShortVec2>();
-
         /** Limits of explored area, in chunks. */
         private Rect scope = new Rect();
         public DimensionData()
@@ -188,7 +182,7 @@ namespace CANAntiqueAtlas.src.core
                     TileGroupsPacket p = new TileGroupsPacket { tileGroups = tgs, atlasID = atlasID };
                     CANAntiqueAtlas.serverChannel.SendPacket(
                              p
-                           , player as IServerPlayer);
+                           , player.Player as IServerPlayer);
                     count = 0;
                 }
             }
@@ -197,7 +191,7 @@ namespace CANAntiqueAtlas.src.core
                 TileGroupsPacket p = new TileGroupsPacket { tileGroups = tgs, atlasID = atlasID };
                 CANAntiqueAtlas.serverChannel.SendPacket(
                             p
-                          , player as IServerPlayer);
+                          , player.Player as IServerPlayer);
             }
             //Log.info("Sent dimension #%d (%d tiles)", dimension, total);
         }

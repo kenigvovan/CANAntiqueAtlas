@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CANAntiqueAtlas.src.core;
+using CANAntiqueAtlas.src.gui;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.MathTools;
@@ -37,7 +38,7 @@ namespace CANAntiqueAtlas.src
 
             // On the first run send the map from the server to the client:
             EntityPlayer player = (EntityPlayer)byEntity;
-            if (!(byEntity.World.Side == EnumAppSide.Client) && !data.isSyncedOnPlayer(player) && !data.isEmpty())
+            if (!(byEntity.World.Side == EnumAppSide.Client) && data.isSyncedOnPlayer(player) && !data.isEmpty())
             {
                 data.syncOnPlayer(slot.Itemstack.Attributes.GetInt("atlasID"), player);
             }
@@ -148,6 +149,22 @@ namespace CANAntiqueAtlas.src
                     }
 
                 }
+            }
+        }
+        public override void OnCollected(ItemStack stack, Entity entity)
+        {
+        }
+        public override void OnHeldDropped(IWorldAccessor world, IPlayer byPlayer, ItemSlot slot, int quantity, ref EnumHandling handling)
+        {
+        }
+        public override void OnHeldUseStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, EnumHandInteract useType, bool firstEvent, ref EnumHandHandling handling)
+        {
+            base.OnHeldUseStart(slot, byEntity, blockSel, entitySel, useType, firstEvent, ref handling);
+            if (byEntity.World.Side == EnumAppSide.Client)
+            {
+                var modsys = byEntity.Api.ModLoader.GetModSystem<CANWorldMapManager>();
+                modsys.OnHotKeyWorldMapDlg(null);
+                handling = EnumHandHandling.PreventDefault;
             }
         }
     }
