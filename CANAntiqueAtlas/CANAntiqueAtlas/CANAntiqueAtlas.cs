@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CANAntiqueAtlas.src;
 using CANAntiqueAtlas.src.core;
 using CANAntiqueAtlas.src.gui;
+using CANAntiqueAtlas.src.gui.Map.TileLayer;
 using CANAntiqueAtlas.src.gui.render;
 using CANAntiqueAtlas.src.harmony;
 using CANAntiqueAtlas.src.network.client;
@@ -26,8 +27,8 @@ namespace CANAntiqueAtlas
         public static AtlasDataHandler atlasData = new AtlasDataHandler();
         public static AtlasData ServerMapInfoData = new("here");
         public static AtlasData ClientMapInfoData = new("here");
-        public static Dictionary<int, AtlasSeenData> ServerSeenChunksByAtlases = new();
-        public static Dictionary<int, AtlasSeenData> ClientSeenChunksByAtlases = new();
+        public static Dictionary<long, AtlasSeenData> ServerSeenChunksByAtlases = new();
+        public static Dictionary<long, AtlasSeenData> ClientSeenChunksByAtlases = new();
         public static AtlasData atlasD;
         public static Config config;
         public static ICoreServerAPI sapi;
@@ -36,7 +37,7 @@ namespace CANAntiqueAtlas
         internal static IClientNetworkChannel clientChannel;
         public static IBiomeDetector biomeDetector;
         public TextureSetMap textureSetMap;
-        public BiomeTextureMap biomeTextureMap;
+        public static BiomeTextureMap biomeTextureMap;
         PlayerMovementsListnerServer pmls;
         public override void Start(ICoreAPI api)
         {
@@ -78,6 +79,7 @@ namespace CANAntiqueAtlas
         private void registerDefaultTextureSets(TextureSetMap map)
         {
             map.register(TextureSet.FOREST);
+            map.register(TextureSet.SNOW);
             map.register(TextureSet.TEST);
         }
         public override void StartClientSide(ICoreClientAPI api)
@@ -124,7 +126,7 @@ namespace CANAntiqueAtlas
                         }
                     }
                 }
-                (capi.ModLoader.GetModSystem<CANWorldMapManager>()?.MapLayers[0] as CANChunkMapLayer)?.Event_OnChunkDataReceived(packet.NewMapTiles);
+                
                 lock (ClientSeenChunksByAtlases)
                 {
                     foreach (var (atlasId, hs) in packet.NewlySeenChunk)
@@ -147,11 +149,14 @@ namespace CANAntiqueAtlas
                         }
                     }
                 }
+                (capi.ModLoader.GetModSystem<CANWorldMapManager>()?.MapLayers[0] as CANChunkMapLayer)?.Event_OnChunkDataReceived(packet.NewMapTiles);
             });
             textureSetMap = TextureSetMap.instance();
             registerDefaultTextureSets(textureSetMap);
             biomeTextureMap = BiomeTextureMap.instance();
             biomeTextureMap.setTexture((int)BiomeType.Rainforest, TextureSet.FOREST);
+            biomeTextureMap.setTexture((int)BiomeType.Glacier, TextureSet.SNOW);
+            biomeTextureMap.setTexture((int)BiomeType.Water, TextureSet.WATER);
         }
         private void loadConfig(ICoreAPI api)
         {        

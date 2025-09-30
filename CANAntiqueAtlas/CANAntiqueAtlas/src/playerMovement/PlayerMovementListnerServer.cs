@@ -48,7 +48,7 @@ namespace CANAntiqueAtlas.src.playerMovement
                     }
                 }
 
-                int scanRadius = 1;
+                int scanRadius = 5; //5
                 int playerX = (int)player.Entity.ServerPos.X >> 5;
                 int playerZ = (int)player.Entity.ServerPos.Z >> 5;
                 // Look at chunks around in a circular area:

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.GameContent;
 
-namespace CANAntiqueAtlas.src.gui
+namespace CANAntiqueAtlas.src.gui.Map
 {
     public abstract class CANMapComponent : IDisposable
     {

@@ -26,7 +26,6 @@ namespace CANAntiqueAtlas.src.core
 
             Dictionary<BiomeType, int> biomeOccurrences = new();
 
-            // шаг для "сэмплинга": делим чанк на 4x4 = 16 сегментов
             int stepX = sizeX / 4;
             int stepZ = sizeZ / 4;
             var yMax = chunk.YMax;

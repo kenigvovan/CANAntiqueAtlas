@@ -11,10 +11,10 @@ namespace CANAntiqueAtlas.src.gui.render
     public class Textures
     {
 		public static  string GUI = "";
-		public static  string GUI_ICONS = GUI + "icons/";
-		public static  string GUI_TILES = GUI + "gui/tiles/";
-		public static  string GUI_MARKERS = GUI + "markers/";
-		public static  string GUI_SCALEBAR = GUI + "scalebar/";
+		public static  string GUI_ICONS = GUI + "canantiqueatlas:icons/";
+		public static  string GUI_TILES = GUI + "canantiqueatlas:gui/tiles/";
+		public static  string GUI_MARKERS = GUI + "canantiqueatlas:markers/";
+		public static  string GUI_SCALEBAR = GUI + "canantiqueatlas:scalebar/";
 	
 		public static AssetLocation gui(string path)
         {
@@ -49,6 +49,15 @@ namespace CANAntiqueAtlas.src.gui.render
         public static AssetLocation TILE_FOREST = tile("forest.png"),
             TILE_FOREST2 = tile("forest2.png"),
             TILE_FOREST3 = tile("forest3.png");
+            public static AssetLocation TILE_SNOW = tile("snow.png"),
+            TILE_SNOW1 = tile("snow1.png"),
+            TILE_SNOW2 = tile("snow2.png"),
+            TILE_SNOW3 = tile("snow3.png"),
+            TILE_SNOW4 = tile("snow4.png"),
+            TILE_SNOW5 = tile("snow5.png"),
+            TILE_SNOW6 = tile("snow6.png"),
+            TILE_WATER = tile("water.png"),
+            TILE_WATER2 = tile("water2.png");
         public static AssetLocation TILE_TEST = tile("test.png");
     }
 }

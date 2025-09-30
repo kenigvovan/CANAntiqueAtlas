@@ -10,7 +10,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
-namespace CANAntiqueAtlas.src.gui
+namespace CANAntiqueAtlas.src.gui.Map
 {
     public class CANGuiElementMap: GuiElement
     {
@@ -80,7 +80,12 @@ namespace CANAntiqueAtlas.src.gui
             Bounds.CalcWorldBounds();
             chunkViewBoundsBefore = new Cuboidi();
             BlockPos asBlockPos = api.World.Player.Entity.Pos.AsBlockPos;
-            CurrentBlockViewBounds = new Cuboidd((double)asBlockPos.X - Bounds.InnerWidth / 2.0 / (double)ZoomLevel, 0.0, (double)asBlockPos.Z - Bounds.InnerHeight / 2.0 / (double)ZoomLevel, (double)asBlockPos.X + Bounds.InnerWidth / 2.0 / (double)ZoomLevel, 0.0, (double)asBlockPos.Z + Bounds.InnerHeight / 2.0 / (double)ZoomLevel);
+            CurrentBlockViewBounds = new Cuboidd(asBlockPos.X - Bounds.InnerWidth / 2.0 / ZoomLevel,
+                0.0,
+                asBlockPos.Z - Bounds.InnerHeight / 2.0 / ZoomLevel,
+                asBlockPos.X + Bounds.InnerWidth / 2.0 / ZoomLevel,
+                0.0,
+                asBlockPos.Z + Bounds.InnerHeight / 2.0 / ZoomLevel);
         }
 
         public override void RenderInteractiveElements(float deltaTime)
@@ -106,10 +111,10 @@ namespace CANAntiqueAtlas.src.gui
                 if (snapToPlayer)
                 {
                     EntityPos pos = api.World.Player.Entity.Pos;
-                    CurrentBlockViewBounds.X1 = pos.X - Bounds.InnerWidth / 2.0 / (double)ZoomLevel;
-                    CurrentBlockViewBounds.Z1 = pos.Z - Bounds.InnerHeight / 2.0 / (double)ZoomLevel;
-                    CurrentBlockViewBounds.X2 = pos.X + Bounds.InnerWidth / 2.0 / (double)ZoomLevel;
-                    CurrentBlockViewBounds.Z2 = pos.Z + Bounds.InnerHeight / 2.0 / (double)ZoomLevel;
+                    CurrentBlockViewBounds.X1 = pos.X - Bounds.InnerWidth / 2.0 / ZoomLevel;
+                    CurrentBlockViewBounds.Z1 = pos.Z - Bounds.InnerHeight / 2.0 / ZoomLevel;
+                    CurrentBlockViewBounds.X2 = pos.X + Bounds.InnerWidth / 2.0 / ZoomLevel;
+                    CurrentBlockViewBounds.Z2 = pos.Z + Bounds.InnerHeight / 2.0 / ZoomLevel;
                 }
                 else
                 {
@@ -176,7 +181,7 @@ namespace CANAntiqueAtlas.src.gui
         {
             if (IsDragingMap)
             {
-                CurrentBlockViewBounds.Translate((float)(-(args.X - prevMouseX)) / ZoomLevel, 0.0, (float)(-(args.Y - prevMouseY)) / ZoomLevel);
+                CurrentBlockViewBounds.Translate(-(args.X - prevMouseX) / ZoomLevel, 0.0, -(args.Y - prevMouseY) / ZoomLevel);
                 prevMouseX = args.X;
                 prevMouseY = args.Y;
             }
@@ -186,9 +191,9 @@ namespace CANAntiqueAtlas.src.gui
         {
             if (Bounds.ParentBounds.PointInside(api.Input.MouseX, api.Input.MouseY))
             {
-                float px = (float)(((double)api.Input.MouseX - Bounds.absX) / Bounds.InnerWidth);
-                float pz = (float)(((double)api.Input.MouseY - Bounds.absY) / Bounds.InnerHeight);
-                ZoomAdd((args.delta > 0) ? 0.25f : (-0.25f), px, pz);
+                float px = (float)((api.Input.MouseX - Bounds.absX) / Bounds.InnerWidth);
+                float pz = (float)((api.Input.MouseY - Bounds.absY) / Bounds.InnerHeight);
+                ZoomAdd(args.delta > 0 ? 0.25f : -0.25f, px, pz);
                 args.SetHandled();
             }
         }
@@ -223,14 +228,14 @@ namespace CANAntiqueAtlas.src.gui
 
         public void ClampButPreserveAngle(ref Vec2f viewPos, int border)
         {
-            if (!(viewPos.X >= (float)border) || !((double)viewPos.X <= Bounds.InnerWidth - 2.0) || !(viewPos.Y >= (float)border) || !((double)viewPos.Y <= Bounds.InnerHeight - 2.0))
+            if (!(viewPos.X >= border) || !(viewPos.X <= Bounds.InnerWidth - 2.0) || !(viewPos.Y >= border) || !(viewPos.Y <= Bounds.InnerHeight - 2.0))
             {
-                double num = Bounds.InnerWidth / 2.0 - (double)border;
-                double num2 = Bounds.InnerHeight / 2.0 - (double)border;
-                double value = ((double)viewPos.X - num) / num;
-                double num3 = Math.Max(val2: Math.Abs(((double)viewPos.Y - num2) / num2), val1: Math.Abs(value));
-                viewPos.X = (float)(((double)viewPos.X - num) / num3 + num);
-                viewPos.Y = (float)(((double)viewPos.Y - num2) / num3 + num2);
+                double num = Bounds.InnerWidth / 2.0 - border;
+                double num2 = Bounds.InnerHeight / 2.0 - border;
+                double value = (viewPos.X - num) / num;
+                double num3 = Math.Max(val2: Math.Abs((viewPos.Y - num2) / num2), val1: Math.Abs(value));
+                viewPos.X = (float)((viewPos.X - num) / num3 + num);
+                viewPos.Y = (float)((viewPos.Y - num2) / num3 + num2);
             }
         }
 
@@ -243,16 +248,18 @@ namespace CANAntiqueAtlas.src.gui
 
             double num = CurrentBlockViewBounds.X2 - CurrentBlockViewBounds.X1;
             double num2 = CurrentBlockViewBounds.Z2 - CurrentBlockViewBounds.Z1;
-            worldPos.X = (double)viewPos.X * num / Bounds.InnerWidth + CurrentBlockViewBounds.X1;
-            worldPos.Z = (double)viewPos.Y * num2 / Bounds.InnerHeight + CurrentBlockViewBounds.Z1;
+            worldPos.X = viewPos.X * num / Bounds.InnerWidth + CurrentBlockViewBounds.X1;
+            worldPos.Z = viewPos.Y * num2 / Bounds.InnerHeight + CurrentBlockViewBounds.Z1;
             worldPos.Y = api.World.BlockAccessor.GetRainMapHeightAt(worldPos.AsBlockPos);
         }
 
         public void EnsureMapFullyLoaded()
         {
+           // return;
             nowVisible.Clear();
             nowHidden.Clear();
-            Cuboidi cuboidi = CurrentBlockViewBounds.ToCuboidi();
+            Cuboidi cuboidi = //new Cuboidi()
+                CurrentBlockViewBounds.ToCuboidi();
             cuboidi.Div(32);
             if (chunkViewBoundsBefore.Equals(cuboidi))
             {
@@ -262,13 +269,13 @@ namespace CANAntiqueAtlas.src.gui
             viewChangedSync(cuboidi.X1, cuboidi.Z1, cuboidi.X2, cuboidi.Z2);
             BlockPos blockPos = new BlockPos();
             bool flag = chunkViewBoundsBefore.SizeX == 0 && chunkViewBoundsBefore.SizeZ == 0;
-            int num = ((cuboidi.X2 > chunkViewBoundsBefore.X2) ? 1 : (-1));
-            int num2 = ((cuboidi.Z2 > chunkViewBoundsBefore.Z2) ? 1 : (-1));
-            blockPos.Set((num > 0) ? cuboidi.X1 : cuboidi.X2, 0, cuboidi.Z1);
-            while ((num > 0 && blockPos.X <= cuboidi.X2) || (num < 0 && blockPos.X >= cuboidi.X1))
+            int num = cuboidi.X2 > chunkViewBoundsBefore.X2 ? 1 : -1;
+            int num2 = cuboidi.Z2 > chunkViewBoundsBefore.Z2 ? 1 : -1;
+            blockPos.Set(num > 0 ? cuboidi.X1 : cuboidi.X2, 0, cuboidi.Z1);
+            while (num > 0 && blockPos.X <= cuboidi.X2 || num < 0 && blockPos.X >= cuboidi.X1)
             {
-                blockPos.Z = ((num2 > 0) ? cuboidi.Z1 : cuboidi.Z2);
-                while ((num2 > 0 && blockPos.Z <= cuboidi.Z2) || (num2 < 0 && blockPos.Z >= cuboidi.Z1))
+                blockPos.Z = num2 > 0 ? cuboidi.Z1 : cuboidi.Z2;
+                while (num2 > 0 && blockPos.Z <= cuboidi.Z2 || num2 < 0 && blockPos.Z >= cuboidi.Z1)
                 {
                     if (flag || !chunkViewBoundsBefore.ContainsOrTouches(blockPos))
                     {
@@ -339,7 +346,7 @@ namespace CANAntiqueAtlas.src.gui
 
         public void CenterMapTo(BlockPos pos)
         {
-            CurrentBlockViewBounds = new Cuboidd((double)pos.X - Bounds.InnerWidth / 2.0 / (double)ZoomLevel, 0.0, (double)pos.Z - Bounds.InnerHeight / 2.0 / (double)ZoomLevel, (double)pos.X + Bounds.InnerWidth / 2.0 / (double)ZoomLevel, 0.0, (double)pos.Z + Bounds.InnerHeight / 2.0 / (double)ZoomLevel);
+            CurrentBlockViewBounds = new Cuboidd(pos.X - Bounds.InnerWidth / 2.0 / ZoomLevel, 0.0, pos.Z - Bounds.InnerHeight / 2.0 / ZoomLevel, pos.X + Bounds.InnerWidth / 2.0 / ZoomLevel, 0.0, pos.Z + Bounds.InnerHeight / 2.0 / ZoomLevel);
         }
 
         public override void Dispose()

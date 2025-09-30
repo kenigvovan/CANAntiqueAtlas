@@ -11,6 +11,9 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using System.Threading;
+using CANAntiqueAtlas.src.gui.Map.TileLayer;
+using CANAntiqueAtlas.src.gui.Map;
+using CANAntiqueAtlas.src.gui.Map.EntityLayer;
 
 namespace CANAntiqueAtlas.src.gui
 {
@@ -52,8 +55,8 @@ namespace CANAntiqueAtlas.src.gui
         public void RegisterDefaultMapLayers()
         {
             RegisterMapLayer<CANChunkMapLayer>("chunks", 0);
-            /*RegisterMapLayer<PlayerMapLayer>("players", 0.5);
-            RegisterMapLayer<EntityMapLayer>("entities", 0.5);
+            RegisterMapLayer<CANPlayerMapLayer>("players", 0.5);
+           /* RegisterMapLayer<EntityMapLayer>("entities", 0.5);
             RegisterMapLayer<WaypointMapLayer>("waypoints", 1);*/
         }
 
@@ -74,9 +77,9 @@ namespace CANAntiqueAtlas.src.gui
 
             capi.Event.RegisterGameTickListener(OnClientTick, 20);
 
-            capi.Settings.AddWatcher<bool>("showMinimapHud", (on) => {
+            /*capi.Settings.AddWatcher<bool>("showMinimapHud", (on) => {
                 ToggleMap(EnumDialogType.HUD);
-            });
+            });*/
 
             capi.Event.LeaveWorld += () =>
             {
@@ -117,7 +120,7 @@ namespace CANAntiqueAtlas.src.gui
 
             if (worldMapDlg == null || !worldMapDlg.IsOpened() || (worldMapDlg.IsOpened() && worldMapDlg.DialogType == EnumDialogType.HUD))
             {
-                ToggleMap(EnumDialogType.Dialog);
+                ToggleMap(EnumDialogType.Dialog, this.worldMapDlg.atlasId);
             }
 
             bool exists = false;
@@ -158,10 +161,10 @@ namespace CANAntiqueAtlas.src.gui
             {
                 /*capi.Input.RegisterHotKey("worldmaphud", Lang.Get("Show/Hide Minimap"), GlKeys.F6, HotkeyType.HelpAndOverlays);
                 capi.Input.RegisterHotKey("minimapposition", Lang.Get("keycontrol-minimap-position"), GlKeys.F6, HotkeyType.HelpAndOverlays, false, true, false);*/
-                capi.Input.RegisterHotKey("worldmapdialog", Lang.Get("Show World Map"), GlKeys.M, HotkeyType.HelpAndOverlays);
+                //capi.Input.RegisterHotKey("worldmapdialog", Lang.Get("Show World Map"), GlKeys.M, HotkeyType.HelpAndOverlays);
                 //capi.Input.SetHotKeyHandler("worldmaphud", OnHotKeyWorldMapHud);
                 //capi.Input.SetHotKeyHandler("minimapposition", OnHotKeyMinimapPosition);
-                capi.Input.SetHotKeyHandler("worldmapdialog", OnHotKeyWorldMapDlg);
+                //capi.Input.SetHotKeyHandler("worldmapdialog", OnHotKeyWorldMapDlg);
                 //capi.RegisterLinkProtocol("worldmap", onWorldMapLinkClicked);
             }
 
@@ -217,7 +220,7 @@ namespace CANAntiqueAtlas.src.gui
 
         private bool OnHotKeyWorldMapHud(KeyCombination comb)
         {
-            ToggleMap(EnumDialogType.HUD);
+            ToggleMap(EnumDialogType.HUD, this.worldMapDlg.atlasId);
             return true;
         }
 
@@ -226,7 +229,7 @@ namespace CANAntiqueAtlas.src.gui
             int prev = capi.Settings.Int["minimapHudPosition"];
             capi.Settings.Int["minimapHudPosition"] = (prev + 1) % 4;
 
-            if (worldMapDlg == null || !worldMapDlg.IsOpened()) ToggleMap(EnumDialogType.HUD);
+            if (worldMapDlg == null || !worldMapDlg.IsOpened()) ToggleMap(EnumDialogType.HUD, this.worldMapDlg.atlasId);
             else
             {
                 if (worldMapDlg.DialogType == EnumDialogType.HUD)
@@ -237,14 +240,14 @@ namespace CANAntiqueAtlas.src.gui
             return true;
         }
 
-        public bool OnHotKeyWorldMapDlg(KeyCombination comb)
+        public bool OnHotKeyWorldMapDlg(KeyCombination comb, long atlasID)
         {
-            ToggleMap(EnumDialogType.Dialog);
+            ToggleMap(EnumDialogType.Dialog, atlasID);
             return true;
         }
 
 
-        public void ToggleMap(EnumDialogType asType)
+        public void ToggleMap(EnumDialogType asType, long atlasID)
         {
             bool isDlgOpened = worldMapDlg != null && worldMapDlg.IsOpened();
 
@@ -255,7 +258,11 @@ namespace CANAntiqueAtlas.src.gui
                     //if (asType == EnumDialogType.HUD) capi.Settings.Bool.Set("showMinimapHud", true, false);
 
                     worldMapDlg.Open(asType);
-                    foreach (CANMapLayer layer in MapLayers) layer.OnMapOpenedClient();
+                    foreach (CANMapLayer layer in MapLayers) 
+                    {
+                        layer.atlasID = atlasID;
+                        layer.OnMapOpenedClient(); 
+                    }
                     clientChannel.SendPacket(new OnMapToggle() { OpenOrClose = true });
 
                     return;
@@ -276,7 +283,12 @@ namespace CANAntiqueAtlas.src.gui
             };
 
             worldMapDlg.Open(asType);
-            foreach (CANMapLayer layer in MapLayers) layer.OnMapOpenedClient();
+            worldMapDlg.atlasId = atlasID;
+            foreach (CANMapLayer layer in MapLayers)
+            {
+                layer.OnMapOpenedClient();
+                layer.atlasID = atlasID;
+            }
             clientChannel.SendPacket(new OnMapToggle() { OpenOrClose = true });
         }
 

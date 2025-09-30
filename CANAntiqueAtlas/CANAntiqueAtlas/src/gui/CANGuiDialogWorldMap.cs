@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using CANAntiqueAtlas.src.gui.Map;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -14,6 +15,7 @@ namespace CANAntiqueAtlas.src.gui
 {
     public class CANGuiDialogWorldMap: GuiDialogGeneric
     {
+        public long atlasId;
         public override bool PrefersUngrabbedMouse
         {
             get
@@ -28,7 +30,7 @@ namespace CANAntiqueAtlas.src.gui
                 return 0.07;
             }
         }
-
+        public float SavedZoom = 1;
         public CANGuiDialogWorldMap(OnViewChangedDelegate viewChanged, OnViewChangedSyncDelegate viewChangedSync, ICoreClientAPI capi, List<string> tabnames)
             : base("", capi)
         {
@@ -70,11 +72,13 @@ namespace CANAntiqueAtlas.src.gui
         }
         private GuiComposer ComposeDialog(EnumDialogType dlgType)
         {
-            ElementBounds mapBounds = ElementBounds.Fixed(0.0, 28.0, (double)this.mapWidth, (double)this.mapHeight);
+            //this.mapWidth = (int)ElementBounds.scaled(310);
+            ElementBounds mapBounds = ElementBounds.Fixed(0.0, 0, (double)930 * RuntimeEnv.GUIScale, (double)654 * RuntimeEnv.GUIScale);
             ElementBounds layerList = mapBounds.RightCopy(0.0, 0.0, 0.0, 0.0).WithFixedSize(1.0, 350.0);
-            ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(3.0);
+            ElementBounds bgBounds = ElementBounds.Fill;
             bgBounds.BothSizing = ElementSizing.FitToChildren;
-            bgBounds.WithChildren(new ElementBounds[] { mapBounds, layerList });
+            bgBounds.WithChildren(new ElementBounds[] { mapBounds });
+            //capi.Gui.sc
             ElementBounds dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle).WithFixedAlignmentOffset(-GuiStyle.DialogToScreenPadding, 0.0);
             GuiComposer compo;
 
@@ -113,7 +117,7 @@ namespace CANAntiqueAtlas.src.gui
                 list.Add(guiTab);
                 j = i;
             }
-            ElementBounds tabBounds = ElementBounds.Fixed(-200.0, 45.0, 200.0, 545.0);
+            //ElementBounds tabBounds = ElementBounds.Fixed(-200.0, 45.0, 200.0, 545.0);
             /*compo = this.capi.Gui.CreateCompo("worldmap" + dlgType.ToString(), dialogBounds).AddShadedDialogBG(bgBounds, false, 5.0, 0.75f).AddIf(dlgType == EnumDialogType.Dialog)
                 .AddDialogTitleBar(Lang.Get("World Map", Array.Empty<object>()), new Action(this.OnTitleBarClose), null, null, null)
                 .AddInset(mapBounds, 2, 0.85f)
@@ -136,19 +140,38 @@ namespace CANAntiqueAtlas.src.gui
             //compo.Compose(true);
              List<CANMapLayer> maplayers = this.capi.ModLoader.GetModSystem<CANWorldMapManager>(true).MapLayers;
             compo = this.capi.Gui.CreateCompo("worldmap" + dlgType.ToString(), dialogBounds);
-
+            var c = RuntimeEnv.GUIScale;
+            /*
+            0.875 -   7 - 0.499
+            1 -       8 0.499
+            1.125 -   9 0.495
+            1.25 -    10 0.5
+             
+             */
+            var sc = (float)ElementBounds.scaled(0.5f);
             //compo.AddShadedDialogBG(bgBounds, false, 5.0, 0.75f);
-            compo.AddImageBG(bgBounds, new AssetLocation("canantiqueatlas:gui/book.png"), scale: 0.259f);
+            //0.4985f - with scaled sizes 0.5 - 8 
+            //0.445f -    0.5625 - 9
+            //0.4 - 0.625 - - 10
+            var ff = (0.5f / (float)RuntimeEnv.GUIScale);
+            compo.AddImageBG(bgBounds, new AssetLocation("canantiqueatlas:gui/book.png"), scale: (0.3333f / (float)RuntimeEnv.GUIScale) - 0.001f);
+            //compo.AddImage
+            var innerMap = mapBounds.FlatCopy();
+
+            innerMap.fixedWidth -= 24;
+            innerMap.fixedHeight -= 24;
+            innerMap.fixedOffsetX += 12;
+            innerMap.fixedOffsetY += 12;
             compo.AddIf(dlgType == EnumDialogType.Dialog)
                 //.AddDialogTitleBar(Lang.Get("World Map", Array.Empty<object>()), new Action(this.OnTitleBarClose), null, null, null)
-                .AddInset(mapBounds, 2, 0.85f)
+                //.AddInset(mapBounds, 2, 0.85f)
                 .EndIf()
                 .BeginChildElements(bgBounds)
                 .AddHoverText("", CairoFont.WhiteDetailText(), 350, mapBounds.FlatCopy(), "hoverText")
                 .AddIf(dlgType == EnumDialogType.Dialog)
-                .AddVerticalToggleTabs(this.tabs.ToArray(), tabBounds, new Action<int, GuiTab>(this.OnTabClicked), "verticalTabs")
+                //ddVerticalToggleTabs(this.tabs.ToArray(), tabBounds, new Action<int, GuiTab>(this.OnTabClicked), "verticalTabs")
                 .EndIf()
-                .AddInteractiveElement(new CANGuiElementMap(maplayers, this.capi, this, mapBounds, dlgType == EnumDialogType.HUD), "mapElem")
+                .AddInteractiveElement(new CANGuiElementMap(maplayers, this.capi, this, innerMap, dlgType == EnumDialogType.HUD), "mapElem")
                 .EndChildElements()
                 .Compose(true);
             GuiTab guiTab2 = this.tabs[0];
@@ -173,6 +196,12 @@ namespace CANAntiqueAtlas.src.gui
             }
             mapElem.viewChanged = this.viewChanged;
             mapElem.viewChangedSync = this.viewChangedSync;
+            
+            /*if(SavedZoom != 1f)
+            {
+                mapElem.ZoomAdd(SavedZoom - 1f, 0.5f, 0.5f);
+                SavedZoom = mapElem.ZoomLevel;
+            }*/
             mapElem.ZoomAdd(1f, 0.5f, 0.5f);
             compo.GetHoverText("hoverText").SetAutoWidth(true);
             if (this.listenerId == 0L)
@@ -190,7 +219,7 @@ namespace CANAntiqueAtlas.src.gui
                     }
                     if (this.requireRecompose)
                     {
-                        this.capi.ModLoader.GetModSystem<CANWorldMapManager>(true).ToggleMap(EnumDialogType.Dialog);
+                        this.capi.ModLoader.GetModSystem<CANWorldMapManager>(true).ToggleMap(EnumDialogType.Dialog, this.atlasId);
                         //this.capi.ModLoader.GetModSystem<CANWorldMapManager>(true).ToggleMap(dlgtype);
                         this.requireRecompose = false;
                     }

@@ -11,6 +11,7 @@ using Vintagestory.API.Common.Entities;
 using Vintagestory.API.MathTools;
 using Vintagestory.Common.Database;
 using static CANAntiqueAtlas.src.core.IBiomeDetector;
+using static Vintagestory.Server.Timer;
 
 namespace CANAntiqueAtlas.src
 {
@@ -162,8 +163,13 @@ namespace CANAntiqueAtlas.src
             base.OnHeldUseStart(slot, byEntity, blockSel, entitySel, useType, firstEvent, ref handling);
             if (byEntity.World.Side == EnumAppSide.Client)
             {
+                long atlasId = slot?.Itemstack.Attributes.GetLong("atlasID", -1) ?? -1;
+                if(atlasId < 0)
+                {
+                    //return;
+                }
                 var modsys = byEntity.Api.ModLoader.GetModSystem<CANWorldMapManager>();
-                modsys.OnHotKeyWorldMapDlg(null);
+                modsys.OnHotKeyWorldMapDlg(null, atlasId);
                 handling = EnumHandHandling.PreventDefault;
             }
         }

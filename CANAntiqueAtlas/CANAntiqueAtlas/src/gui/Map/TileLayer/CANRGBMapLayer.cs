@@ -7,7 +7,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
-namespace CANAntiqueAtlas.src.gui
+namespace CANAntiqueAtlas.src.gui.Map.TileLayer
 {
     public abstract class CANRGBMapLayer: CANMapLayer
     {

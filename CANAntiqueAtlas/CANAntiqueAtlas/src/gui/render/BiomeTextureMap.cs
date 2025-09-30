@@ -318,6 +318,13 @@ namespace CANAntiqueAtlas.src.gui.render
             textureMap.TryGetValue(tile.biomeID, out var v);
             return v;
         }
+        public TextureSet getTextureSet(int biomeID)
+        {
+            //if (tile == null) return defaultTexture;
+            //checkRegistration(tile.biomeID);
+            textureMap.TryGetValue(biomeID, out var v);
+            return v;
+        }
 
         public AssetLocation getTexture(Tile tile)
         {

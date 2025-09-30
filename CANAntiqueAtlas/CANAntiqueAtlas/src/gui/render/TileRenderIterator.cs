@@ -92,7 +92,7 @@ namespace CANAntiqueAtlas.src.gui.render
             return chunkX >= scope.minX && chunkX <= scope.maxX + 1 &&
                    chunkY >= scope.minY && chunkY <= scope.maxY + 1;
         }
-        public void FillQuartet(SubTileQuartet quartet)
+        public void FillQuartet(SubTileQuartet quartet, int quartetNum)
         {
             foreach (SubTile subtile in quartet)
             {
@@ -123,12 +123,20 @@ namespace CANAntiqueAtlas.src.gui.render
             if (shouldStitchToVertically(e, b))
             {
                 stitchVertically(quartet.array[0]);
-                if (quartet.array[0].shape == Shape.CONCAVE && shouldStitchTo(e, a))
+                if (quartet.array[0].shape == Shape.CONCAVE && ((shouldStitchTo(e, a) && quartetNum % 2 == 0) || (!(quartetNum % 2 == 0) && shouldStitchTo(e, b))))
+                {
+                    quartet.array[0].shape = Shape.FULL;
+                }
+                if (quartet.array[0].shape == Shape.CONCAVE && ((shouldStitchTo(e, d) && quartetNum == 2)))
                 {
                     quartet.array[0].shape = Shape.FULL;
                 }
                 stitchVertically(quartet.array[1]);
-                if (quartet.array[1].shape == Shape.CONCAVE && shouldStitchTo(e, c))
+                if (quartet.array[1].shape == Shape.CONCAVE && ((shouldStitchTo(e, c) && !(quartetNum % 2 == 0)) || ((quartetNum % 2 == 0) && shouldStitchTo(e, b))))
+                {
+                    quartet.array[1].shape = Shape.FULL;
+                }
+                if (quartet.array[1].shape == Shape.CONCAVE && ((shouldStitchTo(e, f) && quartetNum == 3)))
                 {
                     quartet.array[1].shape = Shape.FULL;
                 }
@@ -136,12 +144,20 @@ namespace CANAntiqueAtlas.src.gui.render
             if (shouldStitchToVertically(e, h))
             {
                 stitchVertically(quartet.array[2]);
-                if (quartet.array[2].shape == Shape.CONCAVE && shouldStitchTo(e, g))
+                if (quartet.array[2].shape == Shape.CONCAVE && ((shouldStitchTo(e, g) && (quartetNum % 2 == 0)) || (!(quartetNum % 2 == 0) && shouldStitchTo(e, h))))
+                {
+                    quartet.array[2].shape = Shape.FULL;
+                }
+                if (quartet.array[2].shape == Shape.CONCAVE && ((shouldStitchTo(e, d) && quartetNum == 0)))
                 {
                     quartet.array[2].shape = Shape.FULL;
                 }
                 stitchVertically(quartet.array[3]);
-                if (quartet.array[3].shape == Shape.CONCAVE && shouldStitchTo(e, i))
+                if (quartet.array[3].shape == Shape.CONCAVE && ((shouldStitchTo(e, i) && !(quartetNum % 2 == 0)) || ((quartetNum % 2 == 0) && shouldStitchTo(e, h))))
+                {
+                    quartet.array[3].shape = Shape.FULL;
+                }
+                if (quartet.array[3].shape == Shape.CONCAVE && ((shouldStitchTo(e, d) && quartetNum == 1)))
                 {
                     quartet.array[3].shape = Shape.FULL;
                 }
@@ -203,40 +219,43 @@ namespace CANAntiqueAtlas.src.gui.render
             * d e f
             * g h i
             */
-            FillQuartet(quartets[0]);
+            FillQuartet(quartets[0], 0);
 
             a = tiles.GetTile(chunkX - 1, chunkY - 1);
             b = tiles.GetTile(chunkX, chunkY - 1);
             c = tiles.GetTile(chunkX + 1, chunkY - 1);
-            d = e;
             e = tiles.GetTile(chunkX, chunkY);
+            d = e;
+           
             f = tiles.GetTile(chunkX + 1, chunkY);
             g = e;
             h = e;
             i = tiles.GetTile(chunkX + 1, chunkY + 1);
-            FillQuartet(quartets[1]);
+            FillQuartet(quartets[1], 1);
 
             a = tiles.GetTile(chunkX - 1, chunkY - 1);
+            e = tiles.GetTile(chunkX, chunkY);
             b = e;
             c = e;
             d = tiles.GetTile(chunkX - 1, chunkY);
-            e = tiles.GetTile(chunkX, chunkY);
+            
             f = e;
             g = tiles.GetTile(chunkX - 1, chunkY + 1);
             h = tiles.GetTile(chunkX, chunkY + 1);
             i = tiles.GetTile(chunkX + 1, chunkY + 1);
-            FillQuartet(quartets[2]);
+            FillQuartet(quartets[2], 2);
 
+            e = tiles.GetTile(chunkX, chunkY);
             a = e;
             b = e;
             c = tiles.GetTile(chunkX + 1, chunkY - 1);
             d = e;
-            e = tiles.GetTile(chunkX, chunkY);
+            
             f = tiles.GetTile(chunkX + 1, chunkY);
             g = tiles.GetTile(chunkX - 1, chunkY + 1);
             h = tiles.GetTile(chunkX, chunkY + 1);
             i = tiles.GetTile(chunkX + 1, chunkY + 1);
-            FillQuartet(quartets[3]);
+            FillQuartet(quartets[3], 3);
 
             return quartets;
         }

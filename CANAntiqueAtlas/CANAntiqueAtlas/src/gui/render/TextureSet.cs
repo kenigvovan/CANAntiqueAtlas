@@ -15,7 +15,16 @@ namespace CANAntiqueAtlas.src.gui.render
     {
         public static TextureSet TEST = new TextureSet(false, "TEST", Textures.TILE_TEST, Textures.TILE_TEST);
         public static TextureSet
-            FOREST = standard("FOREST", Textures.TILE_FOREST, Textures.TILE_FOREST2, Textures.TILE_FOREST3);
+            FOREST = new TextureSet(false, "FOREST", Textures.TILE_FOREST, Textures.TILE_FOREST2, Textures.TILE_FOREST3);
+        public static TextureSet SNOW = new TextureSet(false, "SNOW", // you know nothing.
+                    Textures.TILE_SNOW, Textures.TILE_SNOW, Textures.TILE_SNOW, Textures.TILE_SNOW, Textures.TILE_SNOW,
+                    Textures.TILE_SNOW1, Textures.TILE_SNOW1, Textures.TILE_SNOW1,
+                    Textures.TILE_SNOW2, Textures.TILE_SNOW2, Textures.TILE_SNOW2,
+                    Textures.TILE_SNOW3,
+                    Textures.TILE_SNOW4,
+                    Textures.TILE_SNOW5,
+                    Textures.TILE_SNOW6),
+            WATER = standard("WATER", Textures.TILE_WATER, Textures.TILE_WATER2);
             //FOREST_HILLS = standard("FOREST_HILLS", TILE_FOREST_HILLS, TILE_FOREST_HILLS2, TILE_FOREST_HILLS3),
         //TDOO PLACE DEFAULT
         /** Name of the texture pack to write in the config file. */

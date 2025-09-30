@@ -16,11 +16,12 @@ using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
-namespace CANAntiqueAtlas.src.gui
+namespace CANAntiqueAtlas.src.gui.Map.TileLayer
 {
-    public class ReadyMapPiece
+    public class CANReadyMapPiece
     {
-        public int[] Pixels;
+        public int Biome;
+        public short VariationNumber;
         public FastVec2i Cord;
     }
 
@@ -37,7 +38,7 @@ namespace CANAntiqueAtlas.src.gui
         ConcurrentDictionary<FastVec2i, CANMultiChunkMapComponent> loadedMapData = new();
         HashSet<FastVec2i> curVisibleChunks = new();
 
-        ConcurrentQueue<ReadyMapPiece> readyMapPieces = new ConcurrentQueue<ReadyMapPiece>();
+        ConcurrentQueue<CANReadyMapPiece> readyMapPieces = new ConcurrentQueue<CANReadyMapPiece>();
 
         public override MapLegendItem[] LegendItems => throw new NotImplementedException();
         public override EnumMinMagFilter MinFilter => EnumMinMagFilter.Linear;
@@ -104,15 +105,35 @@ namespace CANAntiqueAtlas.src.gui
                     foreach (var it in atl.Value)
                     {
                         FastVec2i tmpMccoord = new FastVec2i(it.Item1, it.Item2);
+                        List<FastVec2i> li = new() { tmpMccoord,
+                            new FastVec2i(tmpMccoord.X - 1, tmpMccoord.Y - 1),
+                            new FastVec2i(tmpMccoord.X, tmpMccoord.Y - 1),
+                            new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y - 1),
+                            new FastVec2i(tmpMccoord.X - 1, tmpMccoord.Y),
+                            new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y),
+                            new FastVec2i(tmpMccoord.X - 1, tmpMccoord.Y + 1),
+                            new FastVec2i(tmpMccoord.X, tmpMccoord.Y + 1),
+                            new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y + 1)};
+                        foreach(var ch in li)
+                        {
+                            if(loadedMapData.Remove(ch, out var chm))
+                            {
+                                chm.ActuallyDispose();
+                            }
+                        }
+
                         //FastVec2i tmpCoord = new FastVec2i(chunkCoord.X * 32, chunkCoord.Y * 32);
 
                         //if (!loadedMapData.ContainsKey(tmpMccoord) /*&& !curVisibleChunks.Contains(tmpCoord)*/) continue;
-
-                        chunksToGen.Enqueue(tmpMccoord);
+                        foreach (var ch in li)
+                        {
+                            chunksToGen.Enqueue(ch);
+                        }
+                            /*chunksToGen.Enqueue(tmpMccoord);
                         chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X, tmpMccoord.Y - 1));
                         chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X - 1, tmpMccoord.Y));
                         chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X, tmpMccoord.Y + 1));
-                        chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y + 1));
+                        chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y + 1));*/
                     }
                 }
                 
@@ -131,7 +152,33 @@ namespace CANAntiqueAtlas.src.gui
 
         public override void OnMapOpenedClient()
         {
-            colorAccurate = api.World.Config.GetAsBool("colorAccurateWorldmap", false) || (capi.World.Player.Privileges.IndexOf("colorAccurateWorldmap") != -1);
+            colorAccurate = api.World.Config.GetAsBool("colorAccurateWorldmap", false) || capi.World.Player.Privileges.IndexOf("colorAccurateWorldmap") != -1;
+            /*foreach(var it in this.loadedMapData)
+            {
+                it.Value.ActuallyDispose();
+            }
+            loadedMapData.Clear();*/
+            int cx = (int)Math.Floor(capi.World.Player.Entity.Pos.X / 32.0);
+            int cz = (int)Math.Floor(capi.World.Player.Entity.Pos.Z / 32.0);
+            int p = 5;
+            lock (chunksToGen)
+            {
+                for (int dx = -p; dx <= p; dx++)
+                {
+                    for (int dz = -p; dz <= p; dz++)
+                    {
+                        int chunkX = cx + dx;
+                        int chunkZ = cz + dz;
+                        
+                        var v = new FastVec2i(chunkX, chunkZ);
+                        if(loadedMapData.Remove(v, out var old))
+                        {
+                            chunksToGen.Enqueue(v);
+                        }
+                        
+                    }
+                }
+            }
         }
 
         public override void OnMapClosedClient()
@@ -177,6 +224,11 @@ namespace CANAntiqueAtlas.src.gui
 
             int quantityToGen = chunksToGen.Count;
             var dim = CANAntiqueAtlas.ClientMapInfoData.GetDimensionData();
+            CANAntiqueAtlas.ClientSeenChunksByAtlases.TryGetValue(/*this.atlasID*/0, out var seenChunks);
+            if(seenChunks == null)
+            {
+                return;
+            }
             while (quantityToGen > 0)
             {
                 if (mapSink.IsShuttingDown) break;
@@ -191,7 +243,12 @@ namespace CANAntiqueAtlas.src.gui
                 }
 
                 //if (!api.World.BlockAccessor.IsValidPos(cord.X * chunksize, 1, cord.Y * chunksize)) continue;
-                if(this.loadedMapData.ContainsKey(cord))
+                if(loadedMapData.ContainsKey(cord))
+                {
+                    continue;
+                }
+                var seen = seenChunks.GetTile(cord.X, cord.Y);
+                if (seen == null)
                 {
                     continue;
                 }
@@ -200,19 +257,19 @@ namespace CANAntiqueAtlas.src.gui
                 {
                     continue;
                 }
-                readyMapPieces.Enqueue(new ReadyMapPiece() { Pixels = null, Cord = cord });
-                //continue;
-                IMapChunk mc = api.World.BlockAccessor.GetMapChunk(cord.X, cord.Y);
+                readyMapPieces.Enqueue(new CANReadyMapPiece() { VariationNumber = tile.getVariationNumber(), Biome = tile.biomeID, Cord = cord });
+               // continue;
+                /*IMapChunk mc = api.World.BlockAccessor.GetMapChunk(cord.X, cord.Y);
                 if (mc == null)
                 {
                     try
                     {
-                        readyMapPieces.Enqueue(new ReadyMapPiece() { Pixels = null, Cord = cord });
-                        /*MapPieceDB piece = mapdb.GetMapPiece(cord);
+                        readyMapPieces.Enqueue(new ReadyMapPiece() { VariationNumber = tile.getVariationNumber(), Biome = tile.biomeID, Cord = cord });
+                        MapPieceDB piece = mapdb.GetMapPiece(cord);
                         if (piece?.Pixels != null)
                         {
                             loadFromChunkPixels(cord, piece.Pixels);
-                        }*/
+                        }
                     }
                     catch (ProtoBuf.ProtoException)
                     {
@@ -224,14 +281,14 @@ namespace CANAntiqueAtlas.src.gui
                     }
 
                     continue;
-                }
+                }*/
 
                 //int[] tintedPixels = GenerateChunkImage(cord, mc, colorAccurate);
-               // if (tintedPixels == null)
+               //if (tintedPixels == null)
                 {
                     lock (chunksToGenLock)
                     {
-                        chunksToGen.Enqueue(cord);
+                        //chunksToGen.Enqueue(cord);
                     }
 
                     continue;
@@ -255,7 +312,7 @@ namespace CANAntiqueAtlas.src.gui
         {
             if (!readyMapPieces.IsEmpty)
             {
-                int q = Math.Min(readyMapPieces.Count, 1);
+                int q = Math.Min(readyMapPieces.Count, 200);
                 List<CANMultiChunkMapComponent> modified = new();
                 while (q-- > 0)
                 {
@@ -269,7 +326,7 @@ namespace CANAntiqueAtlas.src.gui
                             loadedMapData[mcord] = mccomp = new CANMultiChunkMapComponent(api as ICoreClientAPI, baseCord);
                         }
 
-                        mccomp.setChunk(mappiece.Cord.X - baseCord.X, mappiece.Cord.Y - baseCord.Y);
+                        mccomp.setChunk(mappiece.Cord.X - baseCord.X, mappiece.Cord.Y - baseCord.Y, mappiece);
                        // modified.Add(mccomp);
                     }
                 }

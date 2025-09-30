@@ -9,10 +9,11 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 
-namespace CANAntiqueAtlas.src.gui
+namespace CANAntiqueAtlas.src.gui.Map
 {
     public abstract class CANMapLayer
     {
+        public long atlasID;
         public string RequirePrivilege;
 
         public string RequireCode;
