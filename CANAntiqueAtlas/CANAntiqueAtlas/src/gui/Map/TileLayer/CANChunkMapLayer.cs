@@ -20,8 +20,8 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
 {
     public class CANReadyMapPiece
     {
-        public int Biome;
-        public short VariationNumber;
+        public int[] Biome;
+        public short[] VariationNumber;
         public FastVec2i Cord;
     }
 
@@ -102,10 +102,11 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                 if (!mapSink.IsOpened) return;
                 foreach(var atl in NewMapTiles)
                 {
+                    HashSet<FastVec2i> li = new();
                     foreach (var it in atl.Value)
                     {
-                        FastVec2i tmpMccoord = new FastVec2i(it.Item1, it.Item2);
-                        List<FastVec2i> li = new() { tmpMccoord,
+                        FastVec2i tmpMccoord = new FastVec2i(it.Item1 / 2, it.Item2 / 2);
+                        li.UnionWith(new[]{ tmpMccoord,
                             new FastVec2i(tmpMccoord.X - 1, tmpMccoord.Y - 1),
                             new FastVec2i(tmpMccoord.X, tmpMccoord.Y - 1),
                             new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y - 1),
@@ -113,27 +114,27 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                             new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y),
                             new FastVec2i(tmpMccoord.X - 1, tmpMccoord.Y + 1),
                             new FastVec2i(tmpMccoord.X, tmpMccoord.Y + 1),
-                            new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y + 1)};
-                        foreach(var ch in li)
-                        {
-                            if(loadedMapData.Remove(ch, out var chm))
-                            {
-                                chm.ActuallyDispose();
-                            }
-                        }
-
-                        //FastVec2i tmpCoord = new FastVec2i(chunkCoord.X * 32, chunkCoord.Y * 32);
-
-                        //if (!loadedMapData.ContainsKey(tmpMccoord) /*&& !curVisibleChunks.Contains(tmpCoord)*/) continue;
-                        foreach (var ch in li)
-                        {
-                            chunksToGen.Enqueue(ch);
-                        }
+                            new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y + 1) });                        
                             /*chunksToGen.Enqueue(tmpMccoord);
                         chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X, tmpMccoord.Y - 1));
                         chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X - 1, tmpMccoord.Y));
                         chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X, tmpMccoord.Y + 1));
                         chunksToGen.Enqueue(new FastVec2i(tmpMccoord.X + 1, tmpMccoord.Y + 1));*/
+                    }
+                    foreach (var ch in li)
+                    {
+                        if (loadedMapData.Remove(ch, out var chm))
+                        {
+                            chm.ActuallyDispose();
+                        }
+                    }
+
+                    //FastVec2i tmpCoord = new FastVec2i(chunkCoord.X * 32, chunkCoord.Y * 32);
+
+                    //if (!loadedMapData.ContainsKey(tmpMccoord) /*&& !curVisibleChunks.Contains(tmpCoord)*/) continue;
+                    foreach (var ch in li)
+                    {
+                        chunksToGen.Enqueue(ch);
                     }
                 }
                 
@@ -158,8 +159,8 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                 it.Value.ActuallyDispose();
             }
             loadedMapData.Clear();*/
-            int cx = (int)Math.Floor(capi.World.Player.Entity.Pos.X / 32.0);
-            int cz = (int)Math.Floor(capi.World.Player.Entity.Pos.Z / 32.0);
+            int cx = (int)Math.Floor(capi.World.Player.Entity.Pos.X / 32);
+            int cz = (int)Math.Floor(capi.World.Player.Entity.Pos.Z / 32);
             int p = 5;
             lock (chunksToGen)
             {
@@ -247,17 +248,47 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                 {
                     continue;
                 }
-                var seen = seenChunks.GetTile(cord.X, cord.Y);
+                var tileCoords = cord.Copy();
+                tileCoords.X *= 2;
+                tileCoords.Y *= 2;
+                var seen = seenChunks.GetTile(tileCoords.X, tileCoords.Y);
+                //FastVec2i foundPlot = new FastVec2i(tileCoords.X, tileCoords.Y);
                 if (seen == null)
                 {
+                    /*for (int i = 0; i < 2; i++)
+                    {
+                        for(int j = 0; j < 2; j++)
+                        {
+                            seen = seenChunks.GetTile(foundPlot.X + i, foundPlot.Y + j);
+                            if(seen != null)
+                            {
+                                foundPlot.X += i;
+                                foundPlot.Y += j;
+                                goto jumpHere;
+                            }
+                        }
+                    }
+                    if(seen == null)*/
                     continue;
                 }
-                var tile = dim.GetTile(cord.X, cord.Y);
+            jumpHere:
+                var tile = dim.GetTile(tileCoords.X, tileCoords.Y);
                 if(tile == null)
                 {
                     continue;
                 }
-                readyMapPieces.Enqueue(new CANReadyMapPiece() { VariationNumber = tile.getVariationNumber(), Biome = tile.biomeID, Cord = cord });
+                int[] biomes = new int[4];
+                short[] variations = new short[4];
+                for (int i = 0; i < 2; i++)
+                    for (int j = 0; j < 2; j++)
+                    {
+                        tile = dim.GetTile(tileCoords.X + i, tileCoords.Y + j);
+                        biomes[j * 2 + i] = tile?.biomeID ?? -1;
+                        variations[j * 2 + i] = tile?.getVariationNumber() ?? (short)-1;
+                    }
+
+
+                readyMapPieces.Enqueue(new CANReadyMapPiece() { VariationNumber = variations, Biome = biomes, Cord = tileCoords });
                // continue;
                 /*IMapChunk mc = api.World.BlockAccessor.GetMapChunk(cord.X, cord.Y);
                 if (mc == null)
@@ -286,7 +317,7 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                 //int[] tintedPixels = GenerateChunkImage(cord, mc, colorAccurate);
                //if (tintedPixels == null)
                 {
-                    lock (chunksToGenLock)
+                    //lock (chunksToGenLock)
                     {
                         //chunksToGen.Enqueue(cord);
                     }
@@ -321,6 +352,10 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                         FastVec2i mcord = new FastVec2i(mappiece.Cord.X / CANMultiChunkMapComponent.ChunkLen, mappiece.Cord.Y / CANMultiChunkMapComponent.ChunkLen);
                         FastVec2i baseCord = new FastVec2i(mcord.X * CANMultiChunkMapComponent.ChunkLen, mcord.Y * CANMultiChunkMapComponent.ChunkLen);
 
+                        if (CANAntiqueAtlas.LastAtlasId == -1)
+                        {
+                            continue;
+                        }
                         if (!loadedMapData.TryGetValue(mcord, out CANMultiChunkMapComponent mccomp))
                         {
                             loadedMapData[mcord] = mccomp = new CANMultiChunkMapComponent(api as ICoreClientAPI, baseCord);
@@ -334,7 +369,7 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                // foreach (var mccomp in modified) mccomp.FinishSetChunks();
             }
 
-            /*mtThread1secAccum += dt;
+            mtThread1secAccum += dt;
             if (mtThread1secAccum > 1)
             {
                 List<FastVec2i> toRemove = new List<FastVec2i>();
@@ -351,7 +386,7 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                         {
                             FastVec2i mccord = val.Key;
                             toRemove.Add(mccord);
-                            //mcmp.ActuallyDispose();
+                            mcmp.ActuallyDispose();
                         }
                     }
                     else
@@ -366,7 +401,7 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                 }
 
                 mtThread1secAccum = 0;
-            }*/
+            }
         }
 
         public override void Render(CANGuiElementMap mapElem, float dt)

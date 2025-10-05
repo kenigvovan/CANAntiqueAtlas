@@ -29,7 +29,7 @@ namespace CANAntiqueAtlas.src.gui
 
         private Vec2f viewPos = new Vec2f();
 
-        private bool[,] chunkSet = new bool[1,1];
+        private bool[,] chunkSet = new bool[1, 1];
 
         private const int chunksize = 32;
 
@@ -70,15 +70,16 @@ namespace CANAntiqueAtlas.src.gui
             : base(capi)
         {
             chunkCoord = baseChunkCord;
-            worldPos = new Vec3d(baseChunkCord.X * 32, 0.0, baseChunkCord.Y * 32);
+            worldPos = new Vec3d(baseChunkCord.X * 16, 0.0, baseChunkCord.Y * 16);
         }
 
         public void setChunk(int dx, int dz, CANReadyMapPiece mapPieace)
         {
-            /*if (dx < 0 || dx >= 1 || dz < 0 || dz >= 1)
+            if (dx < 0 || dx >= ChunkLen || dz < 0 || dz >= ChunkLen)
             {
                 throw new ArgumentOutOfRangeException("dx/dz must be within [0," + 2 + "]");
-            }*/
+            }
+
             chunkSet[dx, dz] = true;
             FinishSetChunks(mapPieace);
         }
@@ -89,140 +90,83 @@ namespace CANAntiqueAtlas.src.gui
             {
                 tmpTexture = new LoadedTexture(capi, 0, 32, 32);
             }
-            var itr = new TileRenderIterator(CANAntiqueAtlas.ClientMapInfoData.GetDimensionData());
+
+            var itr = new TileRenderIterator(CANAntiqueAtlas.ClientMapInfoData.GetDimensionData(), CANAntiqueAtlas.ClientSeenChunksByAtlases[CANAntiqueAtlas.LastAtlasId]);
+            
             var quas = itr.SetQuartets(chunkCoord);
-            /*if (Texture == null || Texture.Disposed)
-            {
-                int num = 32;
-                Texture = new LoadedTexture(capi, 0, num, num);
-                var tile = CANAntiqueAtlas.ClientMapInfoData.GetDimensionData().GetTile(this.chunkCoord.X, chunkCoord.Y);
-       
-                if(tile != null)
-                {
-                    if(tile.biomeID == 8)
-                    {
-                        //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/birch2.png", ref Texture);
-                    }
-                    else
-                    {
-                        //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/snow_hills2.png", ref Texture);
-                    }
-                }
-                else
-                {
-                    var c = 3;
-                }
-                //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/birch2.png", ref Texture);
-                //capi.Render.LoadOrUpdateTextureFromRgba(emptyPixels, linearMag: false, 0, ref Texture);
-            }*/
+            
             Texture?.Dispose();
             Texture = new LoadedTexture(capi, 0, 32, 32);
-            //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/snow_hills2.png", ref Texture);
-            //FrameBufferRef fb = capi.Render.CreateFrameBuffer(this.Texture);
+
             var qua = quas[0];
-            int pp = 1;
-            //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/nothing.png", ref Texture);
             byte[] data = capi.Assets.Get("canantiqueatlas:textures/gui/tiles/nothing.png").Data;
             BitmapExternal bitmapExternal = capi.Render.BitmapCreateFromPng(data);
             this.capi.Render.LoadOrUpdateTextureFromRgba(bitmapExternal.Pixels, false, 0, ref this.Texture);
 
-
-            //capi.Render.LoadTexture(bitmapExternal, ref Texture);
-            //capi.Render.GlGenerateTex2DMipmaps();
-            //BitmapRef bmp = capi.Render.crea .CreateBitmapFromPng(assetData, assetData.Length);
-            //int textureId = this.Platform.LoadTexture(bmp, false, 0, false);
-            //LoadedTexture dstTex = new LoadedTexture(capi, 0, 32, 32);
-
-            //capi.Render.RenderTextureIntoTexture(Texture, 0, 0, 32, 32, dstTex, 0, 0);
-            var texSet = CANAntiqueAtlas.biomeTextureMap.getTextureSet(mapPieace.Biome);
-            LoadedTexture src2 = new(capi);
+            var texSet = CANAntiqueAtlas.biomeTextureMap.getTextureSet(mapPieace.Biome[0]);
             
-            if (texSet == null)
-            { 
-               // var c = 3; 
-                
-            }
             LoadedTexture src = new(capi);
-            // capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/snow.png", ref src);
-            //var ff = texSet.textures[mapPieace.VariationNumber % texSet.textures.Length].ToString();
-            var c = Math.Floor(mapPieace.VariationNumber / (float)short.MaxValue * texSet.textures.Length);
+
+            var c = Math.Floor(mapPieace.VariationNumber[0] / (float)short.MaxValue * texSet.textures.Length);
             capi.Render.GetOrLoadTexture(texSet.textures[(int)c].ToString(), ref src);
             //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/test.png", ref src);
+
+            int v = 0, u = 0;
+
             for (int i = 0; i < 2; i++)
             {
                 for (int j = 0; j < 2; j++)
                 {
                     var q = qua.array[i * 2 + j];
-                    
-                    var u = q.getTextureU();
-                    var v = q.getTextureV();
 
-                    int uu = 8 * u;
-                    int vv = 8 * v;
-                    if(q.shape == render.Shape.CONVEX)
-                    {
-                        //var c = 3;
-                    }
-                    //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/snow.png", ref src);
-                    //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/test.png", ref src);
-                    //Console.WriteLine(string.Format("from {0}/{1} to {2}/{3}", 8 * u, 8 * v, 8 * i, 8 * j));
+                    u = q.getTextureU();
+                    v = q.getTextureV();
                     capi.Render.RenderTextureIntoTexture(src, 8 * u, 8 * v, 8, 8, Texture, 8 * j, 8 * i);
-                    /*if (pp == 1)
-                        break;*/
-                    //LoadedTexture fromTexture, float sourceX, float sourceY, float sourceWidth, float sourceHeight, LoadedTexture intoTexture, float targetX, flo
                 }
-               /*if (pp == 1)
-                    break;*/
             }
+            
+            LoadedTexture src2 = new(capi);
+            texSet = CANAntiqueAtlas.biomeTextureMap.getTextureSet(mapPieace.Biome[1]);
+            c = Math.Floor(mapPieace.VariationNumber[1] / (float)short.MaxValue * texSet.textures.Length);
+            capi.Render.GetOrLoadTexture(texSet.textures[(int)c].ToString(), ref src2);
+            
             qua = quas[1];
             for (int i = 0; i < 2; i++)
-                for (int j = 0; j < 2; j++)
-                {
-                    var q = qua.array[i * 2 + j];
-                    var u = q.getTextureU();
-                    var v = q.getTextureV();
-                    //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/nothing.png", ref Texture);
-                    //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/test.png", ref src);
-                    capi.Render.RenderTextureIntoTexture(src, 8 * u, 8 * v, 8, 8, Texture, 8 * j + 16, 8 * i);
-                }
+            for (int j = 0; j < 2; j++)
+            {
+                var q = qua.array[i * 2 + j];
+                u = q.getTextureU();
+                v = q.getTextureV();
+                capi.Render.RenderTextureIntoTexture(src2, 8 * u, 8 * v, 8, 8, Texture, 8 * j + 16, 8 * i);
+            }
+            
+            LoadedTexture src3 = new(capi);
+            texSet = CANAntiqueAtlas.biomeTextureMap.getTextureSet(mapPieace.Biome[2]);
+            c = Math.Floor(mapPieace.VariationNumber[2] / (float)short.MaxValue * texSet.textures.Length);
+            capi.Render.GetOrLoadTexture(texSet.textures[(int)c].ToString(), ref src3);
             qua = quas[2];
             for (int i = 0; i < 2; i++)
-                for (int j = 0; j < 2; j++)
-                {
-                    var q = qua.array[i * 2 + j];
-                    var u = q.getTextureU();
-                    var v = q.getTextureV();
-                    //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/nothing.png", ref Texture);
-                    //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/test.png", ref src);
-                    capi.Render.RenderTextureIntoTexture(src, 8 * u, 8 * v, 8, 8, Texture, 8 * j, 8 * i + 16);
-                }
-            qua = quas[3];
+            for (int j = 0; j < 2; j++)
+            {
+                var q = qua.array[i * 2 + j];
+                u = q.getTextureU();
+                v = q.getTextureV();
+                capi.Render.RenderTextureIntoTexture(src3, 8 * u, 8 * v, 8, 8, Texture, 8 * j, 8 * i + 16);
+            }
+            qua = quas[3]; 
+            LoadedTexture src4 = new(capi);
+
+            texSet = CANAntiqueAtlas.biomeTextureMap.getTextureSet(mapPieace.Biome[3]);
+            c = Math.Floor(mapPieace.VariationNumber[3]/ (float)short.MaxValue * texSet.textures.Length);
+            capi.Render.GetOrLoadTexture(texSet.textures[(int)c].ToString(), ref src4);
             for (int i = 0; i < 2; i++)
                 for (int j = 0; j < 2; j++)
                 {
                     var q = qua.array[i * 2 + j];
-                    var u = q.getTextureU();
-                    var v = q.getTextureV();
-                    //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/nothing.png", ref Texture);
-                    //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/test.png", ref src);
-                    capi.Render.RenderTextureIntoTexture(src, 8 * u, 8 * v, 8, 8, Texture, 8 * j + 16, 8 * i + 16);
+                    u = q.getTextureU();
+                    v = q.getTextureV();
+                    capi.Render.RenderTextureIntoTexture(src4, 8 * u, 8 * v, 8, 8, Texture, 8 * j + 16, 8 * i + 16);
                 }
-            /*  for (int i = 0; i < 2; i++)
-          for (int j = 0; j < 2; j++)
-          {
-              var q = qua.array[i * 2 + j];
-              LoadedTexture src = new(capi);
-              var u = q.getTextureU() == 0 ? 0 : 1;
-              var v = q.getTextureV() == 0 ? 0 : 1;
-              capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/nothing.png", ref Texture);
-              capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/birch2.png", ref src);
-              capi.Render.RenderTextureIntoTexture(src, 8 * u, 8 * v, 8, 8, Texture, 8 * i, 8 * j);
-              //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/birch2.png", ref Texture);
-              //continue;
-              if (src == null || src.Disposed || src.TextureId <= 0) continue;
-      }*/
-
-            //capi.Render.DestroyFrameBuffer(fb);
             capi.Render.BindTexture2d(Texture.TextureId);
             capi.Render.GlGenerateTex2DMipmaps();
             return;
@@ -230,7 +174,7 @@ namespace CANAntiqueAtlas.src.gui
 
         public void unsetChunk(int dx, int dz)
         {
-            if (dx < 0 || dx >= 1 || dz < 0 || dz >= 1)
+            if (dx < 0 || dx >= ChunkLen || dz < 0 || dz >= ChunkLen)
             {
                 throw new ArgumentOutOfRangeException("dx/dz must be within [0," + 2 + "]");
             }
@@ -256,21 +200,21 @@ namespace CANAntiqueAtlas.src.gui
 
         public bool IsVisible(HashSet<FastVec2i> curVisibleChunks)
         {
-            if (curVisibleChunks.Contains(new FastVec2i(chunkCoord.X, chunkCoord.Y)))
+            /*if (curVisibleChunks.Contains(new FastVec2i(chunkCoord.X, chunkCoord.Y)))
             {
                 return true;
-            }
-            /*for (int i = 0; i < 1; i++)
+            }*/
+            for (int i = 0; i < 1; i++)
             {
                 for (int j = 0; j < 1; j++)
                 {
-                    FastVec2i item = new FastVec2i(chunkCoord.X + i, chunkCoord.Y + j);
+                    FastVec2i item = new FastVec2i(chunkCoord.X / 2, chunkCoord.Y / 2);
                     if (curVisibleChunks.Contains(item))
                     {
                         return true;
                     }
                 }
-            }*/
+            }
 
             return false;
         }

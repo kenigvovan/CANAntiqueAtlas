@@ -17,5 +17,6 @@ namespace CANAntiqueAtlas.src
         public int scanRadius = 2;
         public bool forceChunkLoading = false;
         public bool doRescan = true;
+        public float SaveMapChunksEveryNSeconds = 60;
     }
 }

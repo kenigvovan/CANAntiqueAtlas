@@ -14,8 +14,7 @@ namespace CANAntiqueAtlas.src.gui.render
     public class TextureSet: IComparable<TextureSet>
     {
         public static TextureSet TEST = new TextureSet(false, "TEST", Textures.TILE_TEST, Textures.TILE_TEST);
-        public static TextureSet
-            FOREST = new TextureSet(false, "FOREST", Textures.TILE_FOREST, Textures.TILE_FOREST2, Textures.TILE_FOREST3);
+        public static TextureSet TEMPERATEFOREST = new TextureSet(false, "TEMPERATEFOREST", Textures.TILE_FOREST, Textures.TILE_FOREST2, Textures.TILE_FOREST3);
         public static TextureSet SNOW = new TextureSet(false, "SNOW", // you know nothing.
                     Textures.TILE_SNOW, Textures.TILE_SNOW, Textures.TILE_SNOW, Textures.TILE_SNOW, Textures.TILE_SNOW,
                     Textures.TILE_SNOW1, Textures.TILE_SNOW1, Textures.TILE_SNOW1,
@@ -23,9 +22,41 @@ namespace CANAntiqueAtlas.src.gui.render
                     Textures.TILE_SNOW3,
                     Textures.TILE_SNOW4,
                     Textures.TILE_SNOW5,
-                    Textures.TILE_SNOW6),
-            WATER = standard("WATER", Textures.TILE_WATER, Textures.TILE_WATER2);
-            //FOREST_HILLS = standard("FOREST_HILLS", TILE_FOREST_HILLS, TILE_FOREST_HILLS2, TILE_FOREST_HILLS3),
+                    Textures.TILE_SNOW6);
+        public static TextureSet SWAMP = standard("SWAMP",
+                    Textures.TILE_SWAMP, Textures.TILE_SWAMP, Textures.TILE_SWAMP,
+                    Textures.TILE_SWAMP2,
+                    Textures.TILE_SWAMP3,
+                    Textures.TILE_SWAMP4,
+                    Textures.TILE_SWAMP5,
+                    Textures.TILE_SWAMP6);
+        public static TextureSet JUNGLE = standard("JUNGLE", Textures.TILE_JUNGLE, Textures.TILE_JUNGLE2);
+
+        public static TextureSet SNOW_PINES = standard("SNOW_PINES", Textures.TILE_SNOW_PINES, Textures.TILE_SNOW_PINES2, Textures.TILE_SNOW_PINES3);
+        public static TextureSet WATER = standard("WATER", Textures.TILE_WATER, Textures.TILE_WATER2);
+        public static TextureSet DESERT = standard("DESERT",
+                    Textures.TILE_SAND, Textures.TILE_SAND,
+                    Textures.TILE_SAND2, Textures.TILE_SAND2,
+                    Textures.TILE_SAND3, Textures.TILE_SAND3,
+                    Textures.TILE_SAND_BUSHES, Textures.TILE_SAND_BUSHES,
+                    Textures.TILE_CACTI);
+        public static TextureSet PLATEAU_MESA_TREES = standard("PLATEAU_MESA_TREES",
+                                 Textures.TILE_PLATEAU_MESA, Textures.TILE_PLATEAU_MESA2,
+                                 Textures.TILE_PLATEAU_MESA_LOW, Textures.TILE_PLATEAU_MESA_LOW2,
+                                 Textures.TILE_PLATEAU_TREES, Textures.TILE_PLATEAU_TREES_LOW);
+        public static TextureSet PLAINS = standard("PLAINS", Textures.TILE_GRASS, Textures.TILE_GRASS2, Textures.TILE_GRASS3, Textures.TILE_GRASS4);
+        public static TextureSet MOUNTAINS_SNOW_CAPS = standard("MOUNTAINS_SNOW_CAPS", Textures.TILE_MOUNTAINS, Textures.TILE_SNOW_CAPS);
+        public static TextureSet MOUNTAINS = standard("MOUNTAINS", // Has a few trees on top.
+                            Textures.TILE_MOUNTAINS, Textures.TILE_MOUNTAINS,
+                            Textures.TILE_MOUNTAINS2, Textures.TILE_MOUNTAINS2,
+                            Textures.TILE_MOUNTAINS3,
+                            Textures.TILE_MOUNTAINS4);
+        public static TextureSet HILLS = standard("HILLS", Textures.TILE_HILLS);
+        public static TextureSet SPARSE_FOREST = standard("SPARSE_FOREST", Textures.TILE_SPARSE_FOREST, Textures.TILE_SPARSE_FOREST2, Textures.TILE_SPARSE_FOREST3);
+        public static TextureSet LAVA = standard("LAVA", Textures.TILE_LAVA, Textures.TILE_LAVA2);
+        public static TextureSet MEGA_SPRUCE = standard("MEGA_SPRUCE", Textures.TILE_MEGA_SPRUCE, Textures.TILE_MEGA_SPRUCE2);
+
+        //FOREST_HILLS = standard("FOREST_HILLS", TILE_FOREST_HILLS, TILE_FOREST_HILLS2, TILE_FOREST_HILLS3),
         //TDOO PLACE DEFAULT
         /** Name of the texture pack to write in the config file. */
         public string name; 

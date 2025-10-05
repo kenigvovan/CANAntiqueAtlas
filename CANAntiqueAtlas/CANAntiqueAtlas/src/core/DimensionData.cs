@@ -86,7 +86,7 @@ namespace CANAntiqueAtlas.src.core
                 //Log.warn("Setting map zoom to invalid value of %f", zoom);
                 browsingZoom = CANAntiqueAtlas.config.minScale;
             }
-            parent.Save();
+            //parent.Save();
         }
 
         public int getBrowsingX()
@@ -114,7 +114,7 @@ namespace CANAntiqueAtlas.src.core
             }
             //scope.extendTo(x, y);
             tg.SetTile(x, y, tile);
-            parent.Save();
+            //parent.Save();
         }
 
         /**Puts a tileGroup into this dimensionData, overwriting any previous stuff.*/

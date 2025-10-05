@@ -8,6 +8,7 @@ using ProtoBuf;
 
 namespace CANAntiqueAtlas.src.core
 {
+    [ProtoContract]
     public class TileGroupSeen: ISeenTileStorage
     {
         public static string TAG_POSITION = "p";
@@ -18,19 +19,23 @@ namespace CANAntiqueAtlas.src.core
 
         /** The area of chunks this group covers */
         [ProtoMember(2)]
-        public Rect scope = new Rect(0, 0, CHUNK_STEP, CHUNK_STEP);
+        public Rect scope;// = new Rect(0, 0, CHUNK_STEP, CHUNK_STEP);
 
         /** The tiles in this scope */
         [ProtoMember(1)]
-        TileSeen[] tiles = new TileSeen[CHUNK_STEP * CHUNK_STEP];
+        TileSeen[] tiles;// = new TileSeen[CHUNK_STEP * CHUNK_STEP];
         public TileGroupSeen()
         {
+           // tiles = new TileSeen[CHUNK_STEP * CHUNK_STEP];
+            //scope = new Rect(0, 0, CHUNK_STEP, CHUNK_STEP);
             //tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
         }
         public TileGroupSeen(int x, int y)
         {
             // tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
             //scope = new Rect(0, 0, CHUNK_STEP, CHUNK_STEP);
+            tiles = new TileSeen[CHUNK_STEP * CHUNK_STEP];
+            scope = new Rect(0, 0, CHUNK_STEP, CHUNK_STEP);
             scope.minX = x;
             scope.minY = y;
             scope.maxX = scope.minX + CHUNK_STEP - 1;

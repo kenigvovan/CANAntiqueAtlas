@@ -250,7 +250,7 @@ namespace CANAntiqueAtlas.src.gui
         public void ToggleMap(EnumDialogType asType, long atlasID)
         {
             bool isDlgOpened = worldMapDlg != null && worldMapDlg.IsOpened();
-
+            CANAntiqueAtlas.LastAtlasId = atlasID;
             if (worldMapDlg != null)
             {
                 if (!isDlgOpened)

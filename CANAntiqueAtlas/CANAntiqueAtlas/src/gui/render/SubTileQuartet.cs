@@ -24,8 +24,8 @@ namespace CANAntiqueAtlas.src.gui.render
 	     * 2 3
 	     */
         public SubTile[] array;
-	
-	    public SubTileQuartet(): this(new SubTile(Part.TOP_LEFT), new SubTile(Part.TOP_RIGHT),
+
+        public SubTileQuartet(): this(new SubTile(Part.TOP_LEFT), new SubTile(Part.TOP_RIGHT),
                        new SubTile(Part.BOTTOM_LEFT), new SubTile(Part.BOTTOM_RIGHT))
         {
             
@@ -33,8 +33,8 @@ namespace CANAntiqueAtlas.src.gui.render
         public SubTileQuartet(SubTile a, SubTile b, SubTile c, SubTile d)
         {
             array = new SubTile[] { a, b, c, d };
-        }
 
+        }
         public SubTile get(int i)
         {
             return array[i];

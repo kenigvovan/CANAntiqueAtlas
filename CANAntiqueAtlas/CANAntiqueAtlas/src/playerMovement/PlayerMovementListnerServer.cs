@@ -16,10 +16,12 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
-using static CANAntiqueAtlas.src.core.IBiomeDetector;
+using static CANAntiqueAtlas.src.core.BiomeDetectors.IBiomeDetector;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using CANAntiqueAtlas.src.util;
 using CANAntiqueAtlas.src.network.server;
+using CANAntiqueAtlas.src.core.BiomeDetectors;
+using System.Threading;
 
 namespace CANAntiqueAtlas.src.playerMovement
 {
@@ -42,15 +44,15 @@ namespace CANAntiqueAtlas.src.playerMovement
                 if (LastPlayerPos.TryGetValue(player.PlayerUID, out var lastPos))
                 {
                     //ignore if in the same plot
-                    if (player.Entity.ServerPos.X / 32 == lastPos.X && player.Entity.ServerPos.Z / 32 == lastPos.Y)
+                    if (player.Entity.ServerPos.X / 16 == lastPos.X && player.Entity.ServerPos.Z / 16 == lastPos.Y)
                     {
                         continue;
                     }
                 }
 
                 int scanRadius = 5; //5
-                int playerX = (int)player.Entity.ServerPos.X >> 5;
-                int playerZ = (int)player.Entity.ServerPos.Z >> 5;
+                int playerX = (int)player.Entity.ServerPos.X >> 4;
+                int playerZ = (int)player.Entity.ServerPos.Z >> 4;
                 // Look at chunks around in a circular area:
                 for (double dx = -scanRadius; dx <= scanRadius; dx++)
                 {
@@ -61,58 +63,70 @@ namespace CANAntiqueAtlas.src.playerMovement
                             continue; // Outside the circle
                         }
                         int x = (int)(playerX + dx);
+                        x -= x % 2 == 1 ? -1 : 0;
+                        
                         int z = (int)(playerZ + dz);
-                        Tile oldTile = mapData.GetTile(x, z);
-
-                        BiomeType biomeId = BiomeType.NOT_FOUND;
-                        if (oldTile == null)
+                        z -= z % 2 == 1 ? -1 : 0;
+                        for (int i = 0; i < 2; i++)
                         {
-                            var chunkCoords = new Vec2i(x, z);
-                            var chunk = player.Entity.World.BlockAccessor.GetMapChunk(chunkCoords);
-                            if (chunk == null)
+                            for (int j = 0; j < 4; j++)
                             {
-                                if (CANAntiqueAtlas.config.forceChunkLoading)
-                                {
-                                    CANAntiqueAtlas.sapi.WorldManager.LoadChunkColumn(x, z);
-                                    //player.worldObj.getChunkProvider().loadChunk(x << 4, z << 4);
-                                    continue;
-                                }
-                                else
-                                {
-                                    continue;
-                                }
-                            }
+                                Tile oldTile = mapData.GetTile(x + i, z + j);
 
-                            // Scanning new chunk:
-                            biomeId = biomeDetector.GetBiomeID(chunk, chunkCoords);
-                            if (biomeId != BiomeType.NOT_FOUND)
-                            {
-                                mapData.SetTile(x, z, new Tile((int)biomeId));
-                                oldTile = new Tile((int)biomeId);
-                            }
-                            //NewMapTiles.Add(oldTile);
-                        }
-                        if (oldTile != null)
-                        {                           
-                            foreach (var atlas in atlassesHashSet)
-                            {
-                                if (atlas.HasTileAt(x, z)) 
+                                BiomeType biomeId = BiomeType.NOT_FOUND;
+                                if (oldTile == null)
                                 {
-                                    continue;
-                                };
-                                if(!NewlySeenChunk.ContainsKey(atlas.key))
-                                {
-                                    NewlySeenChunk[atlas.key] = new HashSet<Vec2i>();
+                                    //Thread.Sleep(500);
+                                    var chunkCoords = new Vec2i(x / 2, z / 2);
+                                    var chunk = player.Entity.World.BlockAccessor.GetMapChunk(chunkCoords);
+                                    if (chunk == null)
+                                    {
+                                        if (CANAntiqueAtlas.config.forceChunkLoading)
+                                        {
+                                            CANAntiqueAtlas.sapi.WorldManager.LoadChunkColumn(x, z);
+                                            //player.worldObj.getChunkProvider().loadChunk(x << 4, z << 4);
+                                            continue;
+                                        }
+                                        else
+                                        {
+                                            continue;
+                                        }
+                                    }
+
+                                    // Scanning new chunk:
+                                    //NEED TO SCAN 16X16 CHUNKS WITH CONDITIONS OF 32X32 CHUNK
+                                    biomeId = biomeDetector.GetBiomeID(chunk, chunkCoords, x + i, z + j);
+                                    if (biomeId != BiomeType.NOT_FOUND)
+                                    {
+                                        mapData.SetTile(x + i, z + j, new Tile((int)biomeId));
+                                        oldTile = new Tile((int)biomeId);
+                                    }
+                                    //NewMapTiles.Add(oldTile);
                                 }
-                                atlas.SetTile(x, z, new TileSeen());
-                                NewlySeenChunk[atlas.key].Add(new Vec2i(x, z));
-                                if (!NewMapTiles.ContainsKey(atlas.key))
+                                if (oldTile != null)
                                 {
-                                    NewMapTiles[atlas.key] = new();
+                                    foreach (var atlas in atlassesHashSet)
+                                    {
+                                        if (atlas.HasTileAt(x + i, z + j))
+                                        {
+                                            continue;
+                                        }
+                                        ;
+                                        if (!NewlySeenChunk.ContainsKey(atlas.key))
+                                        {
+                                            NewlySeenChunk[atlas.key] = new HashSet<Vec2i>();
+                                        }
+                                        atlas.SetTile(x + i, z + j, new TileSeen());
+                                        NewlySeenChunk[atlas.key].Add(new Vec2i(x + i, z + j));
+                                        if (!NewMapTiles.ContainsKey(atlas.key))
+                                        {
+                                            NewMapTiles[atlas.key] = new();
+                                        }
+                                        NewMapTiles[atlas.key].Add((x + i, z + j, oldTile));
+                                    }
                                 }
-                                NewMapTiles[atlas.key].Add((x, z, oldTile));
                             }
-                        }                        
+                        }               
                     }
                 }
             }
@@ -138,7 +152,7 @@ namespace CANAntiqueAtlas.src.playerMovement
         {
             if (!LastPlayerPos.ContainsKey(byPlayer.PlayerUID))
             {
-                LastPlayerPos[byPlayer.PlayerUID] = new Vec2i((int)byPlayer.Entity.ServerPos.X >> 5, (int)byPlayer.Entity.ServerPos.Z >> 5);
+                LastPlayerPos[byPlayer.PlayerUID] = new Vec2i((int)byPlayer.Entity.ServerPos.X >> 4, (int)byPlayer.Entity.ServerPos.Z >> 4);
             }
             List<int> CollectedAtlases = new();
             foreach (var inv in byPlayer.InventoryManager.Inventories)
@@ -195,6 +209,10 @@ namespace CANAntiqueAtlas.src.playerMovement
                     SeenData = CANAntiqueAtlas.ServerSeenChunksByAtlases[atlas]
 
                 }, byPlayer);
+            }
+            if(MapCollectedTiles == null || MapCollectedTiles.Count == 0)
+            {
+                return;
             }
             CANAntiqueAtlas.serverChannel.SendPacket(new PlayerJoinedMapData()
             {

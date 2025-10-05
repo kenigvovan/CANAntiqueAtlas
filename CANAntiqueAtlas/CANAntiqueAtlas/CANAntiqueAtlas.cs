@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text;
 using CANAntiqueAtlas.src;
 using CANAntiqueAtlas.src.core;
+using CANAntiqueAtlas.src.core.BiomeDetectors;
 using CANAntiqueAtlas.src.gui;
 using CANAntiqueAtlas.src.gui.Map.TileLayer;
 using CANAntiqueAtlas.src.gui.render;
@@ -10,13 +13,16 @@ using CANAntiqueAtlas.src.network.client;
 using CANAntiqueAtlas.src.network.server;
 using CANAntiqueAtlas.src.playerMovement;
 using HarmonyLib;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.CommandAbbr;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
 using Vintagestory.GameContent;
-using static CANAntiqueAtlas.src.core.IBiomeDetector;
+using static CANAntiqueAtlas.src.core.BiomeDetectors.IBiomeDetector;
 
 namespace CANAntiqueAtlas
 {
@@ -25,10 +31,14 @@ namespace CANAntiqueAtlas
         public static Harmony harmonyInstance;
         public const string harmonyID = "canantiqueatlas.Patches";
         public static AtlasDataHandler atlasData = new AtlasDataHandler();
+        public const string ServerMapInfoDataStringKey = "ServerMapInfoDataStringKey";
         public static AtlasData ServerMapInfoData = new("here");
         public static AtlasData ClientMapInfoData = new("here");
-        public static Dictionary<long, AtlasSeenData> ServerSeenChunksByAtlases = new();
-        public static Dictionary<long, AtlasSeenData> ClientSeenChunksByAtlases = new();
+        public static long LastAtlasId = -1;
+        public const string ServerSeenChunksByAtlasStringKey = "ServerSeenChunksByAtlasStringKey";
+       
+        public static ConcurrentDictionary<long, AtlasSeenData> ServerSeenChunksByAtlases = new();
+        public static ConcurrentDictionary<long, AtlasSeenData> ClientSeenChunksByAtlases = new();
         public static AtlasData atlasD;
         public static Config config;
         public static ICoreServerAPI sapi;
@@ -75,10 +85,78 @@ namespace CANAntiqueAtlas
             pmls = new PlayerMovementsListnerServer();
             sapi.Event.RegisterGameTickListener(pmls.CheckPlayerMove, 2000);
             sapi.Event.PlayerNowPlaying += pmls.OnPlayerNowPlaying;
+
+            Dictionary<AssetLocation, JToken> many = api.Assets.GetMany<JToken>(api.Server.Logger, "config/conditions/default_bioms");
+
+            foreach (KeyValuePair<AssetLocation, JToken> val in many)
+            {
+                if (val.Value is JObject)
+                {
+                    BiomeConditions conditions = val.Value.ToObject<BiomeConditions>();
+                    biomeDetector.RegisterBiome(conditions);
+                }
+                if (val.Value is JArray)
+                {
+                    foreach (JToken token in (val.Value as JArray))
+                    {
+                        BiomeConditions conditions = token.ToObject<BiomeConditions>();
+                        biomeDetector.RegisterBiome(conditions);
+                    }
+                }
+            }
+            api.ChatCommands.Create("canatlas")
+               .RequiresPlayer()
+               .RequiresPrivilege(Privilege.controlserver)
+               .BeginSub("shst")
+                   .HandleWith(ShowStatsCommand)
+                .EndSub();
+            sapi.Event.ServerRunPhase(EnumServerRunPhase.ModsAndConfigReady, () =>
+            {
+                ServerSeenChunksByAtlases =  CANAntiqueAtlas.sapi.WorldManager.SaveGame.GetData<ConcurrentDictionary<long, AtlasSeenData>>(ServerSeenChunksByAtlasStringKey);
+                if(ServerSeenChunksByAtlases == null)
+                {
+                    ServerSeenChunksByAtlases = new();
+                }
+                ServerMapInfoData = CANAntiqueAtlas.sapi.WorldManager.SaveGame.GetData<AtlasData>(ServerMapInfoDataStringKey);
+                if (ServerMapInfoData == null)
+                {
+                    ServerMapInfoData = new();
+                }
+            });
+            sapi.Event.ServerRunPhase(EnumServerRunPhase.Shutdown, () =>
+            {
+                CANAntiqueAtlas.sapi.WorldManager.SaveGame.StoreData(ServerSeenChunksByAtlasStringKey, ServerSeenChunksByAtlases);
+                CANAntiqueAtlas.sapi.WorldManager.SaveGame.StoreData<AtlasData>(ServerMapInfoDataStringKey, ServerMapInfoData);
+            });
+            sapi.Event.Timer(() =>
+            {
+                lock (ServerSeenChunksByAtlases)
+                {
+                    CANAntiqueAtlas.sapi.WorldManager.SaveGame.StoreData(ServerSeenChunksByAtlasStringKey, ServerSeenChunksByAtlases);
+                }
+                lock (ServerMapInfoData)
+                {
+                    CANAntiqueAtlas.sapi.WorldManager.SaveGame.StoreData<AtlasData>(ServerMapInfoDataStringKey, ServerMapInfoData);
+                }
+            }, config.SaveMapChunksEveryNSeconds);
+        }
+        public static TextCommandResult ShowStatsCommand(TextCommandCallingArgs args)
+        {
+            TextCommandResult tcr = new TextCommandResult();
+            tcr.Status = EnumCommandStatus.Success;
+            IServerPlayer player = args.Caller.Player as IServerPlayer;
+
+            ClimateCondition cond = CANAntiqueAtlas.sapi.World.BlockAccessor.GetClimateAt(player.Entity.ServerPos.AsBlockPos, EnumGetClimateMode.WorldGenValues);
+            StringBuilder stringBuilder = new StringBuilder();
+           
+            stringBuilder.AppendLine(string.Format("temp: {0}, rain: {1}, fert: {2}, forest: {3}, shrub: {4}", cond.Temperature, cond.Rainfall, cond.Fertility, cond.ForestDensity, cond.ShrubDensity));
+            Console.WriteLine(stringBuilder.ToString());
+            tcr.StatusMessage = stringBuilder.ToString();
+            return tcr;
         }
         private void registerDefaultTextureSets(TextureSetMap map)
         {
-            map.register(TextureSet.FOREST);
+            map.register(TextureSet.TEMPERATEFOREST);
             map.register(TextureSet.SNOW);
             map.register(TextureSet.TEST);
         }
@@ -151,12 +229,36 @@ namespace CANAntiqueAtlas
                 }
                 (capi.ModLoader.GetModSystem<CANWorldMapManager>()?.MapLayers[0] as CANChunkMapLayer)?.Event_OnChunkDataReceived(packet.NewMapTiles);
             });
+            clientChannel.SetMessageHandler<PlayerJoinedMapDataSeen>((packet) =>
+            {
+                ClientSeenChunksByAtlases[packet.SeenData.key] = packet.SeenData;
+            });
+            clientChannel.SetMessageHandler<PlayerJoinedMapData>((packet) =>
+            {
+                foreach(var it in packet.ServerMapInfoData)
+                {
+                    ClientMapInfoData.SetTile(0, it.Key.x, it.Key.y, it.Value);
+                }
+            });
             textureSetMap = TextureSetMap.instance();
             registerDefaultTextureSets(textureSetMap);
             biomeTextureMap = BiomeTextureMap.instance();
-            biomeTextureMap.setTexture((int)BiomeType.Rainforest, TextureSet.FOREST);
+            //biomeTextureMap.setTexture((int)BiomeType.Rainforest, TextureSet.JUNGLE);
             biomeTextureMap.setTexture((int)BiomeType.Glacier, TextureSet.SNOW);
             biomeTextureMap.setTexture((int)BiomeType.Water, TextureSet.WATER);
+            biomeTextureMap.setTexture((int)BiomeType.Swamp, TextureSet.SWAMP);
+            biomeTextureMap.setTexture((int)BiomeType.TemperateForest, TextureSet.TEMPERATEFOREST);
+            biomeTextureMap.setTexture((int)BiomeType.Desert, TextureSet.DESERT);
+            biomeTextureMap.setTexture((int)BiomeType.Plains, TextureSet.PLAINS);
+            biomeTextureMap.setTexture((int)BiomeType.Plateau, TextureSet.PLATEAU_MESA_TREES);
+            biomeTextureMap.setTexture((int)BiomeType.Mountains, TextureSet.MOUNTAINS);
+            biomeTextureMap.setTexture((int)BiomeType.MountainsSnowCaps, TextureSet.MOUNTAINS_SNOW_CAPS);
+            biomeTextureMap.setTexture((int)BiomeType.SparseForest, TextureSet.SPARSE_FOREST);
+            biomeTextureMap.setTexture((int)BiomeType.Hills, TextureSet.HILLS);
+            biomeTextureMap.setTexture((int)BiomeType.HotSpring, TextureSet.LAVA);
+            biomeTextureMap.setTexture((int)BiomeType.Redwood, TextureSet.MEGA_SPRUCE);
+            biomeTextureMap.setTexture((int)BiomeType.Jungle, TextureSet.JUNGLE);
+            // biomeTextureMap.setTexture((int)BiomeType.Taiga, TextureSet.SNOW_PINES);
         }
         private void loadConfig(ICoreAPI api)
         {        
@@ -169,6 +271,21 @@ namespace CANAntiqueAtlas
                
             api.StoreModConfig<Config>(config, this.Mod.Info.ModID + ".json");            
             return;          
+        }
+        public override void Dispose()
+        {
+            base.Dispose();
+            /*harmonyInstance = null;
+            atlasData = null;
+            ServerMapInfoData = null;
+            ClientMapInfoData = null;
+            ServerSeenChunksByAtlases = null;
+            ClientSeenChunksByAtlases = null;
+            atlasD = null;
+            sapi = null;
+            capi = null;
+            biomeDetector = null;
+            biomeTextureMap = null;*/
         }
     }
 }

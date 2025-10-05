@@ -27,7 +27,7 @@ namespace CANAntiqueAtlas.src.gui.render
         /** This map allows keys other than the 256 biome IDs to use for special tiles. */
         Dictionary<int, TextureSet> textureMap = new();
 
-        public static TextureSet defaultTexture = TextureSet.FOREST;
+        public static TextureSet defaultTexture = TextureSet.TEMPERATEFOREST;
 	
 	    /** Assign texture set to biome. */
 	    public void setTexture(int biomeID, TextureSet textureSet)

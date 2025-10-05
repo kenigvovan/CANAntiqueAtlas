@@ -25,6 +25,10 @@ namespace CANAntiqueAtlas.src.core
         public ConcurrentDictionary<ShortVec2, TileGroupSeen> tileGroups = new();
         [ProtoMember(2)]
         public int key;
+        public AtlasSeenData()
+        {
+
+        }
         public AtlasSeenData(int key)
         {
             this.key = key;
@@ -38,12 +42,17 @@ namespace CANAntiqueAtlas.src.core
             TileSeen t = null;
             foreach (var entry in tileGroups)
             {
-                int basex = entry.Key.x;
-                int basey = entry.Key.y;
+
+                int basex = entry.Key.x * 16;
+                int basey = entry.Key.y * 16;
                 for (int x = basex; x < basex + TileGroupSeen.CHUNK_STEP; x++)
                 {
                     for (int y = basey; y < basey + TileGroupSeen.CHUNK_STEP; y++)
                     {
+                        if(x == 31855)
+                        {
+                            var c = 3;
+                        }
                         t = entry.Value.GetTile(x, y);
                         if (t != null)
                         {

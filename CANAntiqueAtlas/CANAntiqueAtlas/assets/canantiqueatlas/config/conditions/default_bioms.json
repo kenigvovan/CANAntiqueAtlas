@@ -1,0 +1,337 @@
+[
+    {
+        "Name": "forest",
+
+        "BiomeType": "TemperateForest",
+
+        "MaxHeight": 120,
+
+        "MinHeight": 105,
+
+        "BlockCodeWildCards": [ "leaves-grown*", "forestfloor*" ],
+        "Priority": 1.3,
+
+        "MaxTemperature": 25,
+
+        "MinTemperature": -5,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "sparseforest",
+
+        "BiomeType": "SparseForest",
+
+        "MaxHeight": 139,
+
+        "MinHeight": 105,
+
+        "BlockCodeWildCards": [ "leaves-grown*", "leavesbranchy-grown*", "fern-*", "forestfloor*" ],
+        "Priority": 1.2,
+
+        "MaxTemperature": 25,
+
+        "MinTemperature": -5,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "desert",
+
+        "BiomeType": "Desert",
+
+        "MaxHeight": 120,
+
+        "MinHeight": 105,
+
+        "BlockCodeWildCards": [ "sand-*", "gravel-*" ],
+        "Priority": 1.1,
+
+        "MaxTemperature": 25,
+
+        "MinTemperature": -15,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "plains",
+        "BiomeType": "Plains",
+        "MaxHeight": 125,
+        "MinHeight": 106,
+        "BlockCodeWildCards": [],
+        "Priority": 1,
+        "MaxTemperature": 25,
+        "MinTemperature": -15,
+        "MaxRainfall": 1,
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "hills",
+        "BiomeType": "Hills",
+        "MaxHeight": 139,
+        "MinHeight": 125,
+        "BlockCodeWildCards": [],
+        "Priority": 1,
+        "MaxTemperature": 25,
+        "MinTemperature": -15,
+        "MaxRainfall": 1,
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0,
+        "MinHeightRange": 7,
+        "MaxHeightRange": 15
+    },
+    {
+        "Name": "water",
+
+        "BiomeType": "Water",
+
+        "MaxHeight": 120,
+
+        "MinHeight": 105,
+
+        "BlockCodeWildCards": [ "water-still-*" ],
+        "Priority": 1.1,
+
+        "MaxTemperature": 55,
+
+        "MinTemperature": -35,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "plateau",
+
+        "BiomeType": "Plateau",
+
+        "MaxHeight": 180,
+
+        "MinHeight": 140,
+
+        "BlockCodeWildCards": [],
+        "Priority": 1,
+
+        "MaxTemperature": 55,
+
+        "MinTemperature": -35,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "MountainsSnowCaps",
+
+        "BiomeType": "MountainsSnowCaps",
+
+        "MaxHeight": 250,
+
+        "MinHeight": 160,
+
+        "BlockCodeWildCards": [ "glacierice" ],
+        "Priority": 4,
+
+        "MaxTemperature": 55,
+
+        "MinTemperature": -35,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "Mountains",
+
+        "BiomeType": "Mountains",
+
+        "MaxHeight": 250,
+
+        "MinHeight": 140,
+        "MaxTemperature": 55,
+
+        "MinTemperature": -35,
+        "BlockCodeWildCards": [],
+        "Priority": 1,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "HotSpring",
+
+        "BiomeType": "HotSpring",
+
+        "MaxHeight": 180,
+
+        "MinHeight": 80,
+
+        "BlockCodeWildCards": [ "sludgygravel" ],
+        "Priority": 4,
+
+        "MaxTemperature": 55,
+
+        "MinTemperature": -35,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "Swamp",
+
+        "BiomeType": "Swamp",
+
+        "MaxHeight": 134,
+
+        "MinHeight": 105,
+
+        "BlockCodeWildCards": [
+            "tallplant-coopersreed-*",
+            "water-still-*",
+            "aquatic-watercrowfoot-*",
+            "water-still-*",
+            "tallplant-papyrus-*"
+        ],
+        "Priority": 1.1,
+
+        "MaxTemperature": 55,
+
+        "MinTemperature": -10,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "Redwood",
+
+        "BiomeType": "Redwood",
+
+        "MaxHeight": 190,
+
+        "MinHeight": 105,
+
+        "BlockCodeWildCards": [ "leaves-grown*-redwood", "leavesbranchy-grown*-redwood" ],
+        "Priority": 1.2,
+
+        "MaxTemperature": 55,
+
+        "MinTemperature": -35,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    },
+    {
+        "Name": "Jungle",
+
+        "BiomeType": "Jungle",
+
+        "MaxHeight": 190,
+
+        "MinHeight": 105,
+
+        "BlockCodeWildCards": [
+            "leaves-grown*-baldcypress",
+            "flower-croton-*",
+            "leaves-grown*-kapok",
+            "leavesbranchy-grown*-kapok",
+            "leaves-grown*-purpleheart",
+            "leavesbranchy-grown*-purpleheart"
+        ],
+        "Priority": 1.2,
+
+        "MaxTemperature": 55,
+
+        "MinTemperature": 15,
+
+        "MaxRainfall": 1,
+
+        "MinRainfall": 0,
+        "MaxFertility": 1,
+        "MinFertility": 0,
+        "MaxForestDensity": 1,
+        "MinForestDensity": 0,
+        "MaxShrubDensity": 1,
+        "MinShrubDensity": 0
+    }
+]
