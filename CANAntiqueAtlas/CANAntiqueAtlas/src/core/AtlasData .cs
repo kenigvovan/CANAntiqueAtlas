@@ -19,6 +19,7 @@ using System.Security.Claims;
 using CANAntiqueAtlas.src.network.client;
 using ProtoBuf;
 using System.IO;
+using Vintagestory.API.MathTools;
 
 namespace CANAntiqueAtlas.src.core
 {
@@ -91,7 +92,7 @@ namespace CANAntiqueAtlas.src.core
             return new HashSet<int> { 0 };
             ;
         }
-        public ConcurrentDictionary<ShortVec2, Tile> GetSeenChunksInDimension(int dimension)
+        public ConcurrentDictionary<FastVec2i, Tile> GetSeenChunksInDimension(int dimension)
         {
             return this.dimensionData.GetSeenChunks();
         }

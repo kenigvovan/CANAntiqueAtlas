@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CANAntiqueAtlas.src.core;
 using CANAntiqueAtlas.src.util;
 using ProtoBuf;
+using Vintagestory.API.MathTools;
 
 namespace CANAntiqueAtlas.src.network.server
 {
@@ -13,6 +14,6 @@ namespace CANAntiqueAtlas.src.network.server
     public class PlayerJoinedMapData
     {
         [ProtoMember(1)]
-        public Dictionary<ShortVec2, Tile> ServerMapInfoData;
+        public Dictionary<FastVec2i, Tile> ServerMapInfoData;
     }
 }

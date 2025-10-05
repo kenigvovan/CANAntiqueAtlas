@@ -116,7 +116,7 @@ namespace CANAntiqueAtlas.src.playerMovement
                                         {
                                             NewlySeenChunk[atlas.key] = new HashSet<Vec2i>();
                                         }
-                                        atlas.SetTile(x + i, z + j, new TileSeen());
+                                        atlas.SetTile(x + i, z + j, true);
                                         NewlySeenChunk[atlas.key].Add(new Vec2i(x + i, z + j));
                                         if (!NewMapTiles.ContainsKey(atlas.key))
                                         {
@@ -188,20 +188,20 @@ namespace CANAntiqueAtlas.src.playerMovement
             }
 
             var mapData = CANAntiqueAtlas.ServerMapInfoData.GetDimensionData();
-            Dictionary<ShortVec2, Tile> MapCollectedTiles = new();
+            Dictionary<FastVec2i, Tile> MapCollectedTiles = new();
             foreach (var atlas in CollectedAtlases)
             {
                 AtlasData atlasData = new();
                 foreach(var tm in CANAntiqueAtlas.ServerSeenChunksByAtlases[atlas].GetSeenChunks())
                 {
-                    if(MapCollectedTiles.ContainsKey(new ShortVec2(tm.Key.x, tm.Key.y)))
+                    if(MapCollectedTiles.ContainsKey(new FastVec2i(tm.Key.X, tm.Key.Y)))
                     {
                         continue;
                     }
-                    var mapTile = mapData.GetTile(tm.Key.x, tm.Key.y);
+                    var mapTile = mapData.GetTile(tm.Key.X, tm.Key.Y);
                     if(mapTile != null)
                     {
-                        MapCollectedTiles[new ShortVec2(tm.Key.x, tm.Key.y)] = mapTile;
+                        MapCollectedTiles[new FastVec2i(tm.Key.X, tm.Key.Y)] = mapTile;
                     }
                 }
                 CANAntiqueAtlas.serverChannel.SendPacket(new PlayerJoinedMapDataSeen()

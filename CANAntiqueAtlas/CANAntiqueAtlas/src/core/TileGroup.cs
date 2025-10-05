@@ -9,6 +9,7 @@ using Vintagestory.GameContent;
 using Vintagestory.API.Datastructures;
 using ProtoBuf;
 using System.Xml.Linq;
+using Vintagestory.API.MathTools;
 
 namespace CANAntiqueAtlas.src.core
 {
@@ -28,14 +29,16 @@ namespace CANAntiqueAtlas.src.core
 
         /** The tiles in this scope */
         [ProtoMember(1)]
-        Tile[] tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
+        //public Tile[] tiles;// = new Tile[CHUNK_STEP * CHUNK_STEP];
+        public Dictionary<long, Tile> tiles = new();
         public TileGroup()
         {
             //tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
         }
         public TileGroup(int x, int y)
         {
-           // tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
+            // tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
+            //tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
             //scope = new Rect(0, 0, CHUNK_STEP, CHUNK_STEP);
             scope.minX = x;
             scope.minY = y;
@@ -48,18 +51,8 @@ namespace CANAntiqueAtlas.src.core
             {
                 int rx = x - scope.minX;
                 int ry = y - scope.minY;
-                if((rx * CHUNK_STEP + ry) > 255)
-                {
-                    var c = 3;
-                }
-                tiles[rx * CHUNK_STEP + ry] = tile;
-            }
-            else
-            {
-                var F = 1;
-                /*Log.warn("TileGroup tried to set tile out of bounds:" +
-                "\n\tbounds:" + scope +
-                "\n\ttarget: x:" + x + ", y:" + y);*/
+                //(uint)((uint)x + ((long)y << 16))
+                tiles[(uint)((uint)rx + ((long)ry << 16))] = tile;
             }
         }
 
@@ -76,7 +69,9 @@ namespace CANAntiqueAtlas.src.core
             {
                 int rx = x - scope.minX;
                 int ry = y - scope.minY;
-                return tiles[rx * CHUNK_STEP + ry];
+                tiles.TryGetValue((uint)((uint)rx + ((long)ry << 16)), out Tile tile);
+                return tile;
+                //return tiles[rx * CHUNK_STEP + ry];
             }
             return null;
         }
@@ -92,9 +87,15 @@ namespace CANAntiqueAtlas.src.core
         public override bool Equals(object obj)
         {
             if (obj == null || !(obj is TileGroup))
-
-            return false;
-            TileGroup other = (TileGroup)obj;
+            {
+                return false;
+            }
+            if (!this.tiles.Equals(obj as TileGroup))
+            {
+                return false;
+            }
+            return true;
+            /*TileGroup other = (TileGroup)obj;
             if (!scope.Equals(other.scope))
                 return false;
             int a;
@@ -109,7 +110,7 @@ namespace CANAntiqueAtlas.src.core
                         return false;
                 }
             }
-            return true;
+            return true;*/
         }
 
         public override int GetHashCode()

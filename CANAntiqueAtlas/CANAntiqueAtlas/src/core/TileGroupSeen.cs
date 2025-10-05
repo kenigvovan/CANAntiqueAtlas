@@ -23,7 +23,7 @@ namespace CANAntiqueAtlas.src.core
 
         /** The tiles in this scope */
         [ProtoMember(1)]
-        TileSeen[] tiles;// = new TileSeen[CHUNK_STEP * CHUNK_STEP];
+        bool[] tiles;// = new TileSeen[CHUNK_STEP * CHUNK_STEP];
         public TileGroupSeen()
         {
            // tiles = new TileSeen[CHUNK_STEP * CHUNK_STEP];
@@ -34,14 +34,14 @@ namespace CANAntiqueAtlas.src.core
         {
             // tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
             //scope = new Rect(0, 0, CHUNK_STEP, CHUNK_STEP);
-            tiles = new TileSeen[CHUNK_STEP * CHUNK_STEP];
+            tiles = new bool[CHUNK_STEP * CHUNK_STEP];
             scope = new Rect(0, 0, CHUNK_STEP, CHUNK_STEP);
             scope.minX = x;
             scope.minY = y;
             scope.maxX = scope.minX + CHUNK_STEP - 1;
             scope.maxY = scope.minY + CHUNK_STEP - 1;
         }
-        public void SetTile(int x, int y, TileSeen tile)
+        public void SetTile(int x, int y, bool tile)
         {
             if (x >= scope.minX && y >= scope.minY && x <= scope.maxX && y <= scope.maxY)
             {
@@ -62,14 +62,14 @@ namespace CANAntiqueAtlas.src.core
             }
         }
 
-        public TileSeen RemoveTile(int x, int y)
+        public bool RemoveTile(int x, int y)
         {
-            TileSeen tmp = GetTile(x, y);
-            SetTile(x, y, null);
+            bool tmp = GetTile(x, y);
+            SetTile(x, y, false);
             return tmp;
         }
 
-        public TileSeen GetTile(int x, int y)
+        public bool GetTile(int x, int y)
         {
             if (x >= scope.minX && y >= scope.minY && x <= scope.maxX && y <= scope.maxY)
             {
@@ -77,7 +77,7 @@ namespace CANAntiqueAtlas.src.core
                 int ry = y - scope.minY;
                 return tiles[rx * CHUNK_STEP + ry];
             }
-            return null;
+            return false;
         }
 
         public bool HasTileAt(int x, int y)

@@ -213,7 +213,7 @@ namespace CANAntiqueAtlas
                         {
                             foreach (var t in hs)
                             {
-                                asd.SetTile(t.X, t.Y, new TileSeen());
+                                asd.SetTile(t.X, t.Y, true);
                             }
                         }
                         else
@@ -221,7 +221,7 @@ namespace CANAntiqueAtlas
                             var asdNew = new AtlasSeenData(atlasId);
                             foreach (var t in hs)
                             {
-                                asdNew.SetTile(t.X, t.Y, new TileSeen());
+                                asdNew.SetTile(t.X, t.Y, true);
                             }
                             ClientSeenChunksByAtlases[atlasId] = asdNew;
                         }
@@ -237,7 +237,7 @@ namespace CANAntiqueAtlas
             {
                 foreach(var it in packet.ServerMapInfoData)
                 {
-                    ClientMapInfoData.SetTile(0, it.Key.x, it.Key.y, it.Value);
+                    ClientMapInfoData.SetTile(0, it.Key.X, it.Key.Y, it.Value);
                 }
             });
             textureSetMap = TextureSetMap.instance();

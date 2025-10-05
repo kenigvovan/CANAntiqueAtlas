@@ -9,10 +9,10 @@ namespace CANAntiqueAtlas.src.core
 {
     public interface ISeenTileStorage
     {
-        void SetTile(int x, int y, TileSeen Tile);
+        void SetTile(int x, int y, bool Tile);
         /** Returns the Tile previously set at given coordinates. */
-        TileSeen RemoveTile(int x, int y);
-        TileSeen GetTile(int x, int y);
+        bool RemoveTile(int x, int y);
+        bool GetTile(int x, int y);
         bool HasTileAt(int x, int y);
     }
 }

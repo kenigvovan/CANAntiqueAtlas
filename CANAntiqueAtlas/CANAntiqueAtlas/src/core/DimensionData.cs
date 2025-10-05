@@ -13,6 +13,7 @@ using Vintagestory.API.Datastructures;
 using CANAntiqueAtlas.src.network.client;
 using Vintagestory.API.Server;
 using ProtoBuf;
+using Vintagestory.API.MathTools;
 
 namespace CANAntiqueAtlas.src.core
 {
@@ -34,10 +35,10 @@ namespace CANAntiqueAtlas.src.core
          * a map of chunks the player has seen. This map is thread-safe. CAREFUL!
          * Don't modify chunk coordinates that are already put in the map!
          * 
-         * Key is a ShortVec2 representing the tilegroup's position in units of TileGroup.CHUNK_STEP
+         * Key is a FastVec2i representing the tilegroup's position in units of TileGroup.CHUNK_STEP
          */
         [ProtoMember(4)]
-        private ConcurrentDictionary<ShortVec2, TileGroup> tileGroups = new ConcurrentDictionary<ShortVec2, TileGroup>();
+        private ConcurrentDictionary<FastVec2i, TileGroup> tileGroups = new();
         /** Limits of explored area, in chunks. */
         private Rect scope = new Rect();
         public DimensionData()
@@ -52,14 +53,14 @@ namespace CANAntiqueAtlas.src.core
         /**
          * This function has to create a new map on each call since the packet rework
          */
-        public ConcurrentDictionary<ShortVec2, Tile> GetSeenChunks()
+        public ConcurrentDictionary<FastVec2i, Tile> GetSeenChunks()
         {
-            ConcurrentDictionary<ShortVec2, Tile> chunks = new ConcurrentDictionary<ShortVec2, Tile>();
+            ConcurrentDictionary<FastVec2i, Tile> chunks = new ConcurrentDictionary<FastVec2i, Tile>();
             Tile t = null;
             foreach (var entry in tileGroups)
             {
-                int basex = entry.Key.x;
-                int basey = entry.Key.y;
+                int basex = entry.Key.X;
+                int basey = entry.Key.Y;
                 for (int x = basex; x < basex + TileGroup.CHUNK_STEP; x++)
                 {
                     for (int y = basey; y < basey + TileGroup.CHUNK_STEP; y++)
@@ -67,7 +68,7 @@ namespace CANAntiqueAtlas.src.core
                         t = entry.Value.GetTile(x, y);
                         if (t != null)
                         {
-                            chunks[new ShortVec2(x, y)] = t;
+                            chunks[new FastVec2i(x, y)] = t;
                         }
                     }
                 }
@@ -105,11 +106,11 @@ namespace CANAntiqueAtlas.src.core
         }
         public void SetTile(int x, int y, Tile tile)
         {
-            ShortVec2 groupPos = new ShortVec2((int)Math.Floor(x / (float)TileGroup.CHUNK_STEP),
+            FastVec2i groupPos = new FastVec2i((int)Math.Floor(x / (float)TileGroup.CHUNK_STEP),
                     (int)Math.Floor(y / (float)TileGroup.CHUNK_STEP));
             if(!tileGroups.TryGetValue(groupPos, out TileGroup tg))
             {
-                tg = new TileGroup(groupPos.x * TileGroup.CHUNK_STEP, groupPos.y * TileGroup.CHUNK_STEP);
+                tg = new TileGroup(groupPos.X * TileGroup.CHUNK_STEP, groupPos.Y * TileGroup.CHUNK_STEP);
                 tileGroups[groupPos] = tg;
             }
             //scope.extendTo(x, y);
@@ -120,7 +121,7 @@ namespace CANAntiqueAtlas.src.core
         /**Puts a tileGroup into this dimensionData, overwriting any previous stuff.*/
         public void PutTileGroup(TileGroup t)
         {
-            ShortVec2 key = new ShortVec2(t.scope.minX / TileGroup.CHUNK_STEP, t.scope.minY / TileGroup.CHUNK_STEP);
+            FastVec2i key = new FastVec2i(t.scope.minX / TileGroup.CHUNK_STEP, t.scope.minY / TileGroup.CHUNK_STEP);
             tileGroups[key] = t;
         }
 
@@ -136,7 +137,7 @@ namespace CANAntiqueAtlas.src.core
 
         public Tile GetTile(int x, int y)
         {
-            ShortVec2 groupPos = new ShortVec2((int)Math.Floor(x / (float)TileGroup.CHUNK_STEP),
+            FastVec2i groupPos = new FastVec2i((int)Math.Floor(x / (float)TileGroup.CHUNK_STEP),
                     (int)Math.Floor(y / (float)TileGroup.CHUNK_STEP));
             if(!tileGroups.TryGetValue(groupPos, out TileGroup tg))
             {
