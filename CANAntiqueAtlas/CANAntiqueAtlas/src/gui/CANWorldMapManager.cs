@@ -14,6 +14,7 @@ using System.Threading;
 using CANAntiqueAtlas.src.gui.Map.TileLayer;
 using CANAntiqueAtlas.src.gui.Map;
 using CANAntiqueAtlas.src.gui.Map.EntityLayer;
+using CANAntiqueAtlas.src.gui.Map.WaypointLayer;
 
 namespace CANAntiqueAtlas.src.gui
 {
@@ -56,8 +57,8 @@ namespace CANAntiqueAtlas.src.gui
         {
             RegisterMapLayer<CANChunkMapLayer>("chunks", 0);
             RegisterMapLayer<CANPlayerMapLayer>("players", 0.5);
-           /* RegisterMapLayer<EntityMapLayer>("entities", 0.5);
-            RegisterMapLayer<WaypointMapLayer>("waypoints", 1);*/
+           /* RegisterMapLayer<EntityMapLayer>("entities", 0.5);*/
+            RegisterMapLayer<CANWaypointMapLayer>("waypoints", 1);
         }
 
         public void RegisterMapLayer<T>(string code, double position) where T : CANMapLayer
@@ -250,7 +251,8 @@ namespace CANAntiqueAtlas.src.gui
         public void ToggleMap(EnumDialogType asType, long atlasID)
         {
             bool isDlgOpened = worldMapDlg != null && worldMapDlg.IsOpened();
-            CANAntiqueAtlas.LastAtlasId = atlasID;
+            
+            
             if (worldMapDlg != null)
             {
                 if (!isDlgOpened)
@@ -264,12 +266,13 @@ namespace CANAntiqueAtlas.src.gui
                         layer.OnMapOpenedClient(); 
                     }
                     clientChannel.SendPacket(new OnMapToggle() { OpenOrClose = true });
-
+                    CANAntiqueAtlas.LastAtlasId = atlasID;
                     return;
                 }
                 else
                 {
                     worldMapDlg.TryClose();
+                    CANAntiqueAtlas.LastAtlasId = atlasID;
                     return;
 
                 }
@@ -290,6 +293,7 @@ namespace CANAntiqueAtlas.src.gui
                 layer.atlasID = atlasID;
             }
             clientChannel.SendPacket(new OnMapToggle() { OpenOrClose = true });
+            CANAntiqueAtlas.LastAtlasId = atlasID;
         }
 
         private List<string> getTabsOrdered()

@@ -1,6 +1,6 @@
 {
-	"code": "canemptyatlas",
-	"class": "CANItemEmptyAtlas",
+	"code": "canatlas",
+	"class": "CANItemAtlas",
 	"maxstacksize": 1,
 	"behaviors": [
 		{
@@ -24,7 +24,7 @@
 	},
 	"shape": { "base": "game:block/clutter/bookshelves/small-normal" },
 	"textures": {
-		"cover": { "base": "canantiqueatlas:item/emptymapbook" }
+		"cover": { "base": "canantiqueatlas:item/mapbook" }
 	},
 	"storageFlags": 257,
 	"heldTpIdleAnimation": "holdinglanternrighthand",

@@ -1,3 +1,5 @@
 {
-    "hello": "hello world!"
+    "item-canatlas": "Atlas",
+    "item-canemptyatlas": "Empty atlas",
+    "atlas-number-info": "#{0}"
 }

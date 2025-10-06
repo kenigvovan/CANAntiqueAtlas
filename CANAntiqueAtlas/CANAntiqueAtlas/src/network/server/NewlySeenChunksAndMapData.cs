@@ -13,8 +13,8 @@ namespace CANAntiqueAtlas.src.network.server
     public class NewlySeenChunksAndMapData
     {
         [ProtoMember(1)]
-        public Dictionary<int, HashSet<Vec2i>> NewlySeenChunk;
+        public Dictionary<long, HashSet<Vec2i>> NewlySeenChunk;
         [ProtoMember(2)]
-        public Dictionary<int, HashSet<(int, int, Tile)>> NewMapTiles;
+        public Dictionary<long, HashSet<(int, int, Tile)>> NewMapTiles;
     }
 }

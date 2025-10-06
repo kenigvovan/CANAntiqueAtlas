@@ -3,9 +3,9 @@
     "modid": "canantiqueatlas",
     "name": "CANAntiqueAtlas",
     "authors": [
-        "Unknown"
+        "KenigVovan"
     ],
-    "description": "To be added",
+    "description": "Replacement of default map with item atlas",
     "version": "1.0.0",
     "dependencies": {
         "game": ""

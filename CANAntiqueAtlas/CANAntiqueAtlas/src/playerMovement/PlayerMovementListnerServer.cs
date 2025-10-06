@@ -22,6 +22,7 @@ using CANAntiqueAtlas.src.util;
 using CANAntiqueAtlas.src.network.server;
 using CANAntiqueAtlas.src.core.BiomeDetectors;
 using System.Threading;
+using CANAntiqueAtlas.src.item;
 
 namespace CANAntiqueAtlas.src.playerMovement
 {
@@ -33,12 +34,132 @@ namespace CANAntiqueAtlas.src.playerMovement
         {
 
         }
+        public List<IServerPlayer> GetPlayersWithAtlas(long atlasId)
+        {
+            List<IServerPlayer> players = new();
+            foreach (var item in PlayersAtlasses)
+            {
+                if (item.Value.FirstOrDefault(asd => asd.key == atlasId) != null)
+                {
+                    players.Add(item.Key);
+                }
+            }
+            return players;
+        }
+        public void ForAtlasIdRecheckPlayers(long atlasId)
+        {
+            List<IServerPlayer> players = GetPlayersWithAtlas(atlasId);
+            foreach (var pl in players)
+            {
+                ResyncPlayerAtlases(pl);
+            }
+        }
+        public bool AddAtlasToPlayer(IServerPlayer player, long atlasId)
+        {
+            if (!PlayersAtlasses.ContainsKey(player))
+            {
+                PlayersAtlasses[player] = new HashSet<AtlasSeenData>();
+            }
+            if (CANAntiqueAtlas.ServerSeenChunksByAtlases.TryGetValue(atlasId, out var atlas))
+            {
+                if (PlayersAtlasses[player].Add(atlas))
+                {
+                    SendPlayerAtlasData(player, atlasId);
+                    return true;
+                }
+            }
+            else
+            {
+                var data = new AtlasSeenData(atlasId);
+                CANAntiqueAtlas.ServerSeenChunksByAtlases[atlasId] = data;
+                if (PlayersAtlasses[player].Add(data))
+                {
+                    SendPlayerAtlasData(player, atlasId);
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool RemoveAtlasFromPlayer(IServerPlayer player, long atlasId)
+        {
+            if (!PlayersAtlasses.ContainsKey(player))
+            {
+                return false;
+            }
+            if (CANAntiqueAtlas.ServerSeenChunksByAtlases.TryGetValue(atlasId, out var atlas))
+            {
+                return PlayersAtlasses[player].Remove(atlas);
+            }
+            return false;
+        }
+        public void SendPlayerAtlasData(IServerPlayer player, params long[] atlasIds)
+        {
+            var mapData = CANAntiqueAtlas.ServerMapInfoData.GetDimensionData();
+            Dictionary<FastVec2i, Tile> MapCollectedTiles = new();
+            var playerAtlases = PlayersAtlasses.ContainsKey(player) ? PlayersAtlasses[player] : new HashSet<AtlasSeenData>();
+            foreach (var atlas in playerAtlases)
+            {
+                if(!atlasIds.Contains(atlas.key))
+                {
+                    continue;
+                }
+                AtlasData atlasData = new();
+                foreach (var tm in CANAntiqueAtlas.ServerSeenChunksByAtlases[atlas.key].GetSeenChunks())
+                {
+                    if (MapCollectedTiles.ContainsKey(new FastVec2i(tm.Key.X, tm.Key.Y)))
+                    {
+                        continue;
+                    }
+                    var mapTile = mapData.GetTile(tm.Key.X, tm.Key.Y);
+                    if (mapTile != null)
+                    {
+                        MapCollectedTiles[new FastVec2i(tm.Key.X, tm.Key.Y)] = mapTile;
+                    }
+                }
+                CANAntiqueAtlas.serverChannel.SendPacket(new PlayerJoinedMapDataSeen()
+                {
+                    SeenData = CANAntiqueAtlas.ServerSeenChunksByAtlases[atlas.key]
+
+                }, player);
+            }
+            if (MapCollectedTiles == null || MapCollectedTiles.Count == 0)
+            {
+                return;
+            }
+            CANAntiqueAtlas.serverChannel.SendPacket(new PlayerJoinedMapData()
+            {
+                ServerMapInfoData = MapCollectedTiles
+
+            }, player);
+        }
+
+        public void ResyncPlayerAtlases(IServerPlayer player)
+        {
+            HashSet<long> CollectedAtlases = FindPlayerAtlases(player);
+
+            if(PlayersAtlasses.TryGetValue(player, out var plSet))
+            {
+                var oldSet = plSet.Select(a => a.key).ToHashSet();
+                var newSet = CollectedAtlases.Except(oldSet).ToHashSet();//only really new atlases
+                var toRemove = oldSet.Except(CollectedAtlases).ToHashSet();
+                plSet.RemoveWhere(a => !toRemove.Contains(a.key));//remove old atlases
+                foreach(var it in newSet)
+                {
+                    if (CANAntiqueAtlas.ServerSeenChunksByAtlases.TryGetValue(it, out var atlas))
+                    {
+                        plSet.Add(atlas);
+                    }
+                }
+                SendPlayerAtlasData(player, newSet.ToArray());
+            }
+            
+        }
         public void CheckPlayerMove(float dt)
         {
             IBiomeDetector biomeDetector = CANAntiqueAtlas.biomeDetector;
             var mapData = CANAntiqueAtlas.ServerMapInfoData.GetDimensionData();
-            Dictionary<int, HashSet<Vec2i>> NewlySeenChunk = new();
-            Dictionary<int, HashSet<(int, int, Tile)>> NewMapTiles = new();
+            Dictionary<long, HashSet<Vec2i>> NewlySeenChunk = new();
+            Dictionary<long, HashSet<(int, int, Tile)>> NewMapTiles = new();
             foreach (var (player, atlassesHashSet) in this.PlayersAtlasses)
             {
                 if (LastPlayerPos.TryGetValue(player.PlayerUID, out var lastPos))
@@ -133,8 +254,8 @@ namespace CANAntiqueAtlas.src.playerMovement
             
             foreach (var (player, atlassesHashSet) in this.PlayersAtlasses)
             {
-                Dictionary<int, HashSet<Vec2i>> tmpNewly = NewlySeenChunk.Where(kv => atlassesHashSet.Any(a => a.key == kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value);
-                Dictionary<int, HashSet<(int, int, Tile)>> tmpNewMapTiles = NewMapTiles.Where(kv => atlassesHashSet.Any(a => a.key == kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value);
+                Dictionary<long, HashSet<Vec2i>> tmpNewly = NewlySeenChunk.Where(kv => atlassesHashSet.Any(a => a.key == kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value);
+                Dictionary<long, HashSet<(int, int, Tile)>> tmpNewMapTiles = NewMapTiles.Where(kv => atlassesHashSet.Any(a => a.key == kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value);
                 if(tmpNewly.Count == 0 || tmpNewMapTiles.Count == 0)
                 {
                     continue;
@@ -148,25 +269,21 @@ namespace CANAntiqueAtlas.src.playerMovement
             }
            
         }
-        public void OnPlayerNowPlaying(IServerPlayer byPlayer)
+        public HashSet<long> FindPlayerAtlases(IServerPlayer byPlayer)
         {
-            if (!LastPlayerPos.ContainsKey(byPlayer.PlayerUID))
-            {
-                LastPlayerPos[byPlayer.PlayerUID] = new Vec2i((int)byPlayer.Entity.ServerPos.X >> 4, (int)byPlayer.Entity.ServerPos.Z >> 4);
-            }
-            List<int> CollectedAtlases = new();
+            HashSet<long> CollectedAtlases = new();
             foreach (var inv in byPlayer.InventoryManager.Inventories)
             {
-                if(inv.Value.ClassName == "creative" || inv.Value.ClassName == "ground")
+                if (inv.Value.ClassName == "creative" || inv.Value.ClassName == "ground")
                 {
                     continue;
                 }
                 foreach (var sl in inv.Value)
                 {
-                    if(sl?.Itemstack?.Collectible is CANItemAtlas)
+                    if (sl?.Itemstack?.Collectible is CANItemAtlas)
                     {
-                        var atlasNumber = sl.Itemstack.Attributes.GetInt("atlasID");
-                        if(atlasNumber < 0)
+                        var atlasNumber = sl.Itemstack.Attributes.GetLong("atlasID", -1);
+                        if (atlasNumber < 0)
                         {
                             continue;
                         }
@@ -174,8 +291,6 @@ namespace CANAntiqueAtlas.src.playerMovement
                         {
                             data = new AtlasSeenData(atlasNumber);
                             CANAntiqueAtlas.ServerSeenChunksByAtlases[atlasNumber] = data;
-
-
                         }
                         if (!PlayersAtlasses.ContainsKey(byPlayer))
                         {
@@ -186,6 +301,15 @@ namespace CANAntiqueAtlas.src.playerMovement
                     }
                 }
             }
+            return CollectedAtlases;
+        }
+        public void OnPlayerNowPlaying(IServerPlayer byPlayer)
+        {
+            if (!LastPlayerPos.ContainsKey(byPlayer.PlayerUID))
+            {
+                LastPlayerPos[byPlayer.PlayerUID] = new Vec2i((int)byPlayer.Entity.ServerPos.X >> 4, (int)byPlayer.Entity.ServerPos.Z >> 4);
+            }
+            HashSet<long> CollectedAtlases = FindPlayerAtlases(byPlayer);
 
             var mapData = CANAntiqueAtlas.ServerMapInfoData.GetDimensionData();
             Dictionary<FastVec2i, Tile> MapCollectedTiles = new();
@@ -219,6 +343,14 @@ namespace CANAntiqueAtlas.src.playerMovement
                 ServerMapInfoData = MapCollectedTiles
 
             }, byPlayer);
+        }
+        public HashSet<long>GetPlayerAtlasIds(IServerPlayer player)
+        {
+            if (PlayersAtlasses.TryGetValue(player, out var set))
+            {
+                return set.Select(a => a.key).ToHashSet();
+            }
+            return new HashSet<long>();
         }
     }
 }

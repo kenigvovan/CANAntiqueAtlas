@@ -1,0 +1,44 @@
+[
+    {
+        "ingredientPattern": "E,F",
+        "ingredients": {
+            "E": {
+                "type": "item",
+                "code": "canantiqueatlas:canemptyatlas"
+            },
+            "F": {
+                "type": "item",
+                "code": "canantiqueatlas:canatlas"
+            }
+        },
+        "width": 1,
+        "height": 2,
+        "output": {
+            "type": "item",
+            "code": "canantiqueatlas:canatlas",
+            "quantity": 2
+        }
+    },
+    {
+        "ingredientPattern": "B,N",
+        "ingredients": {
+            "B": {
+                "type": "item",
+                "code": "game:book-normal-*"
+            },
+            "N": {
+                "type": "item",
+                "code": "game:nugget-*",
+                "name": "metal",
+                "allowedVariants": [ "magnetite", "hematite", "limonite" ]
+            }
+        },
+        "width": 1,
+        "height": 2,
+        "output": {
+            "type": "item",
+            "code": "canantiqueatlas:canemptyatlas",
+            "quantity": 1
+        }
+    }
+]

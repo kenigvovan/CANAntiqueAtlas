@@ -9,6 +9,7 @@ using CANAntiqueAtlas.src.gui;
 using CANAntiqueAtlas.src.gui.Map.TileLayer;
 using CANAntiqueAtlas.src.gui.render;
 using CANAntiqueAtlas.src.harmony;
+using CANAntiqueAtlas.src.item;
 using CANAntiqueAtlas.src.network.client;
 using CANAntiqueAtlas.src.network.server;
 using CANAntiqueAtlas.src.playerMovement;
@@ -39,6 +40,7 @@ namespace CANAntiqueAtlas
        
         public static ConcurrentDictionary<long, AtlasSeenData> ServerSeenChunksByAtlases = new();
         public static ConcurrentDictionary<long, AtlasSeenData> ClientSeenChunksByAtlases = new();
+        public const string WorldAtlasDataIdString = "WorldAtlasDataIdString";
         public static AtlasData atlasD;
         public static Config config;
         public static ICoreServerAPI sapi;
@@ -48,7 +50,7 @@ namespace CANAntiqueAtlas
         public static IBiomeDetector biomeDetector;
         public TextureSetMap textureSetMap;
         public static BiomeTextureMap biomeTextureMap;
-        PlayerMovementsListnerServer pmls;
+        public PlayerMovementsListnerServer pmls;
         public override void Start(ICoreAPI api)
         {
             api.RegisterItemClass("CANItemAtlas", typeof(CANItemAtlas));
@@ -67,6 +69,7 @@ namespace CANAntiqueAtlas
             serverChannel.RegisterMessageType(typeof(NewlySeenChunksAndMapData));
             serverChannel.RegisterMessageType(typeof(PlayerJoinedMapData));
             serverChannel.RegisterMessageType(typeof(PlayerJoinedMapDataSeen));
+            serverChannel.RegisterMessageType(typeof(DropedAtlasIdPacket));
             serverChannel.SetMessageHandler<BrowsingPositionPacket>((player, packet) =>
             {
                 ItemStack atlasStack = new ItemStack(player.Entity.World.GetItem(new AssetLocation("canantiqueatlas:canatlas")), 1);
@@ -80,6 +83,10 @@ namespace CANAntiqueAtlas
                 }
                 atlasData.GetAtlasData(packet.atlasID, player.Entity.World)
                     .GetDimensionData().setBrowsingPosition(packet.x, packet.y, packet.zoom);
+            });
+            serverChannel.SetMessageHandler<DropedAtlasIdPacket>((player, packet) =>
+            {
+                pmls.ResyncPlayerAtlases(player);
             });
             biomeDetector = new BiomeDetectorBase();
             pmls = new PlayerMovementsListnerServer();
@@ -122,6 +129,7 @@ namespace CANAntiqueAtlas
                 {
                     ServerMapInfoData = new();
                 }
+                CANItemAtlas.WORLD_ATLAS_DATA_ID = CANAntiqueAtlas.sapi.WorldManager.SaveGame.GetData<long>(WorldAtlasDataIdString);
             });
             sapi.Event.ServerRunPhase(EnumServerRunPhase.Shutdown, () =>
             {
@@ -137,7 +145,7 @@ namespace CANAntiqueAtlas
                 lock (ServerMapInfoData)
                 {
                     CANAntiqueAtlas.sapi.WorldManager.SaveGame.StoreData<AtlasData>(ServerMapInfoDataStringKey, ServerMapInfoData);
-                }
+                }                
             }, config.SaveMapChunksEveryNSeconds);
         }
         public static TextCommandResult ShowStatsCommand(TextCommandCallingArgs args)
@@ -171,6 +179,7 @@ namespace CANAntiqueAtlas
             clientChannel.RegisterMessageType(typeof(NewlySeenChunksAndMapData));
             clientChannel.RegisterMessageType(typeof(PlayerJoinedMapData));
             clientChannel.RegisterMessageType(typeof(PlayerJoinedMapDataSeen));
+            clientChannel.RegisterMessageType(typeof(DropedAtlasIdPacket));
             clientChannel.SetMessageHandler<MapDataPacket>((packet) =>
             {
                 if (packet.data == null) return; // Atlas is empty
@@ -259,6 +268,7 @@ namespace CANAntiqueAtlas
             biomeTextureMap.setTexture((int)BiomeType.Redwood, TextureSet.MEGA_SPRUCE);
             biomeTextureMap.setTexture((int)BiomeType.Jungle, TextureSet.JUNGLE);
             // biomeTextureMap.setTexture((int)BiomeType.Taiga, TextureSet.SNOW_PINES);
+            capi.World.Config.SetBool("allowCoordinateHud", false);
         }
         private void loadConfig(ICoreAPI api)
         {        

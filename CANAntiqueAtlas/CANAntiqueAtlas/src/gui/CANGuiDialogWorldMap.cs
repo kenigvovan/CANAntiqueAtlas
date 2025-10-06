@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using CANAntiqueAtlas.src.gui.Map;
+using CANAntiqueAtlas.src.gui.Map.WaypointLayer;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -157,17 +158,17 @@ namespace CANAntiqueAtlas.src.gui
             compo.AddImageBG(bgBounds, new AssetLocation("canantiqueatlas:gui/book.png"), scale: (0.3333f / (float)RuntimeEnv.GUIScale) - 0.001f);
             //compo.AddImage
             var innerMap = mapBounds.FlatCopy();
-
-            innerMap.fixedWidth -= 24;
-            innerMap.fixedHeight -= 24;
-            innerMap.fixedOffsetX += 12;
-            innerMap.fixedOffsetY += 12;
+            var offsetFull = 36 * (float)RuntimeEnv.GUIScale;
+            innerMap.fixedWidth -= offsetFull;
+            innerMap.fixedHeight -= offsetFull;
+            innerMap.fixedOffsetX += offsetFull / 2;
+            innerMap.fixedOffsetY += offsetFull / 2;
             compo.AddIf(dlgType == EnumDialogType.Dialog)
                 //.AddDialogTitleBar(Lang.Get("World Map", Array.Empty<object>()), new Action(this.OnTitleBarClose), null, null, null)
                 //.AddInset(mapBounds, 2, 0.85f)
                 .EndIf()
                 .BeginChildElements(bgBounds)
-                .AddHoverText("", CairoFont.WhiteDetailText(), 350, mapBounds.FlatCopy(), "hoverText")
+                //.AddHoverText("", CairoFont.WhiteDetailText(), 350, mapBounds.FlatCopy(), "hoverText")
                 .AddIf(dlgType == EnumDialogType.Dialog)
                 //ddVerticalToggleTabs(this.tabs.ToArray(), tabBounds, new Action<int, GuiTab>(this.OnTabClicked), "verticalTabs")
                 .EndIf()
@@ -203,7 +204,7 @@ namespace CANAntiqueAtlas.src.gui
                 SavedZoom = mapElem.ZoomLevel;
             }*/
             mapElem.ZoomAdd(1f, 0.5f, 0.5f);
-            compo.GetHoverText("hoverText").SetAutoWidth(true);
+            //compo.GetHoverText("hoverText").SetAutoWidth(true);
             if (this.listenerId == 0L)
             {
                 this.listenerId = this.capi.Event.RegisterGameTickListener(delegate (float dt)
@@ -236,8 +237,6 @@ namespace CANAntiqueAtlas.src.gui
             this.updateMaplayerExtrasState();
             return compo;
         }
-
-        // Token: 0x06000AB8 RID: 2744 RVA: 0x00060834 File Offset: 0x0005EA34
         private void OnTabClicked(int arg1, GuiTab tab)
         {
             string layerGroupCode = this.tabnames[arg1];
@@ -250,8 +249,6 @@ namespace CANAntiqueAtlas.src.gui
             }
             this.updateMaplayerExtrasState();
         }
-
-        // Token: 0x06000AB9 RID: 2745 RVA: 0x000608B0 File Offset: 0x0005EAB0
         private void updateMaplayerExtrasState()
         {
             if (this.tabs == null)
@@ -268,8 +265,6 @@ namespace CANAntiqueAtlas.src.gui
                 }
             }
         }
-
-        // Token: 0x06000ABA RID: 2746 RVA: 0x0006093D File Offset: 0x0005EB3D
         private void OnRecomposed()
         {
             this.requireRecompose = true;
@@ -293,8 +288,6 @@ namespace CANAntiqueAtlas.src.gui
         {
             this.TryClose();
         }
-
-        // Token: 0x06000ABD RID: 2749 RVA: 0x00060A24 File Offset: 0x0005EC24
         public override bool TryClose()
         {
             //if (this.DialogType == EnumDialogType.Dialog && this.capi.Settings.Bool["showMinimapHud"])
@@ -304,22 +297,16 @@ namespace CANAntiqueAtlas.src.gui
             //}
             return base.TryClose();
         }
-
-        // Token: 0x06000ABE RID: 2750 RVA: 0x00060A59 File Offset: 0x0005EC59
         public void Open(EnumDialogType type)
         {
             //this.opened = false;
             this.TryOpen();
         }
-
-        // Token: 0x06000ABF RID: 2751 RVA: 0x00060A70 File Offset: 0x0005EC70
         public override void OnGuiClosed()
         {
             this.updateMaplayerExtrasState();
             base.OnGuiClosed();
         }
-
-        // Token: 0x06000AC0 RID: 2752 RVA: 0x00060A7E File Offset: 0x0005EC7E
         public override void Dispose()
         {
             base.Dispose();
@@ -343,8 +330,6 @@ namespace CANAntiqueAtlas.src.gui
                 return guiElementMap.mapLayers;
             }
         }
-
-        // Token: 0x06000AC2 RID: 2754 RVA: 0x00060AE4 File Offset: 0x0005ECE4
         public override void OnMouseMove(MouseEvent args)
         {
             base.OnMouseMove(args);
@@ -364,11 +349,9 @@ namespace CANAntiqueAtlas.src.gui
                     mapLayer.OnMouseMoveClient(args, mpc, hoverText);
                 }
                 string text = hoverText.ToString().TrimEnd();
-                hoverTextElem.SetNewText(text);
+                //hoverTextElem.SetNewText(text);
             }
         }
-
-        // Token: 0x06000AC3 RID: 2755 RVA: 0x00060C44 File Offset: 0x0005EE44
         private void loadWorldPos(double mouseX, double mouseY, ref Vec3d worldPos)
         {
             double x = mouseX - base.SingleComposer.Bounds.absX;
@@ -392,8 +375,8 @@ namespace CANAntiqueAtlas.src.gui
             this.capi.Render.CheckGlError("map-fina");
             bool showHover = base.SingleComposer.Bounds.PointInside(this.capi.Input.MouseX, this.capi.Input.MouseY) && this.Focused;
             GuiElementHoverText hoverText = base.SingleComposer.GetHoverText("hoverText");
-            hoverText.SetVisible(showHover);
-            hoverText.SetAutoDisplay(showHover);
+            //hoverText.SetVisible(showHover);
+            //hoverText.SetAutoDisplay(showHover);
         }
         public void TranslateWorldPosToViewPos(Vec3d worldPos, ref Vec2f viewPos)
         {
@@ -418,21 +401,25 @@ namespace CANAntiqueAtlas.src.gui
             //TODO
             if (args.Button == EnumMouseButton.Right)
             {
-                /*Vec3d wpPos = new Vec3d();
+                if(!CANAntiqueAtlas.capi.World.Player.Entity.Controls.ShiftKey)
+                {
+                    return;
+                }
+                Vec3d wpPos = new Vec3d();
                 this.loadWorldPos((double)args.X, (double)args.Y, ref wpPos);
                 if (this.addWpDlg != null)
                 {
                     this.addWpDlg.TryClose();
                     this.addWpDlg.Dispose();
                 }
-                WaypointMapLayer wml = this.MapLayers.FirstOrDefault((MapLayer l) => l is WaypointMapLayer) as WaypointMapLayer;
-                this.addWpDlg = new GuiDialogAddWayPoint(this.capi, wml);
+                CANWaypointMapLayer wml = this.MapLayers.FirstOrDefault((CANMapLayer l) => l is CANWaypointMapLayer) as CANWaypointMapLayer;
+                this.addWpDlg = new CANGuiDialogAddWayPoint(this.capi, wml);
                 this.addWpDlg.WorldPos = wpPos;
                 this.addWpDlg.TryOpen();
                 this.addWpDlg.OnClosed += delegate
                 {
                     this.capi.Gui.RequestFocus(this);
-                };*/
+                };
             }
             base.OnMouseUp(args);
         }
@@ -482,6 +469,6 @@ namespace CANAntiqueAtlas.src.gui
         protected List<GuiTab> tabs;
         private List<string> tabnames;
         private Vec3d hoveredWorldPos = new Vec3d();
-        private GuiDialogAddWayPoint addWpDlg;
+        private CANGuiDialogAddWayPoint addWpDlg;
     }
 }

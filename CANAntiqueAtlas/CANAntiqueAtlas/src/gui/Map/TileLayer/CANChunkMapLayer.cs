@@ -95,7 +95,7 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
             }
             return TextCommandResult.Success("Redrawing map...");
         }
-        public void Event_OnChunkDataReceived(Dictionary<int, HashSet<(int, int, Tile)>> NewMapTiles)
+        public void Event_OnChunkDataReceived(Dictionary<long, HashSet<(int, int, Tile)>> NewMapTiles)
         {
             lock (chunksToGenLock)
             {
@@ -153,6 +153,10 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
 
         public override void OnMapOpenedClient()
         {
+            if(this.atlasID != CANAntiqueAtlas.LastAtlasId)
+            {
+                this.loadedMapData.Clear();
+            }
             colorAccurate = api.World.Config.GetAsBool("colorAccurateWorldmap", false) || capi.World.Player.Privileges.IndexOf("colorAccurateWorldmap") != -1;
             /*foreach(var it in this.loadedMapData)
             {
@@ -225,7 +229,7 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
 
             int quantityToGen = chunksToGen.Count;
             var dim = CANAntiqueAtlas.ClientMapInfoData.GetDimensionData();
-            CANAntiqueAtlas.ClientSeenChunksByAtlases.TryGetValue(/*this.atlasID*/0, out var seenChunks);
+            CANAntiqueAtlas.ClientSeenChunksByAtlases.TryGetValue(this.atlasID, out var seenChunks);
             if(seenChunks == null)
             {
                 return;
@@ -251,16 +255,17 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                 var tileCoords = cord.Copy();
                 tileCoords.X *= 2;
                 tileCoords.Y *= 2;
-                var seen = seenChunks.GetTile(tileCoords.X, tileCoords.Y);
-                //FastVec2i foundPlot = new FastVec2i(tileCoords.X, tileCoords.Y);
-                if (seen == null)
+                //var seen = seenChunks.GetTile(tileCoords.X, tileCoords.Y);
+                FastVec2i foundPlot = new FastVec2i(tileCoords.X, tileCoords.Y);
+                //if (seen)
+                bool seen = false;
                 {
-                    /*for (int i = 0; i < 2; i++)
+                    for (int i = 0; i < 2; i++)
                     {
                         for(int j = 0; j < 2; j++)
                         {
                             seen = seenChunks.GetTile(foundPlot.X + i, foundPlot.Y + j);
-                            if(seen != null)
+                            if(seen)
                             {
                                 foundPlot.X += i;
                                 foundPlot.Y += j;
@@ -268,7 +273,7 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                             }
                         }
                     }
-                    if(seen == null)*/
+                    if(!seen)
                     continue;
                 }
             jumpHere:
@@ -352,7 +357,7 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
                         FastVec2i mcord = new FastVec2i(mappiece.Cord.X / CANMultiChunkMapComponent.ChunkLen, mappiece.Cord.Y / CANMultiChunkMapComponent.ChunkLen);
                         FastVec2i baseCord = new FastVec2i(mcord.X * CANMultiChunkMapComponent.ChunkLen, mcord.Y * CANMultiChunkMapComponent.ChunkLen);
 
-                        if (CANAntiqueAtlas.LastAtlasId == -1)
+                        if (CANAntiqueAtlas.LastAtlasId == -1 || !CANAntiqueAtlas.ClientSeenChunksByAtlases.ContainsKey(CANAntiqueAtlas.LastAtlasId))
                         {
                             continue;
                         }

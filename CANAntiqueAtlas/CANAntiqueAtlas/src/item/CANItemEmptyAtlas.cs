@@ -8,12 +8,15 @@ using CANAntiqueAtlas.src.core;
 using Vintagestory.API.Common;
 using Vintagestory.GameContent;
 
-namespace CANAntiqueAtlas.src
+namespace CANAntiqueAtlas.src.item
 {
     public class CANItemEmptyAtlas: Item
     {
+        //public override onheld
         public override void OnHeldUseStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, EnumHandInteract useType, bool firstEvent, ref EnumHandHandling handling)
         {
+            base.OnHeldUseStart(slot, byEntity, blockSel, entitySel, useType, firstEvent, ref handling);
+            handling = EnumHandHandling.PreventDefault;
             if (byEntity.World.Side == EnumAppSide.Client || slot.Empty) 
             {
                 return;
@@ -27,10 +30,19 @@ namespace CANAntiqueAtlas.src
                     (int)Math.Round(-byEntity.ServerPos.Z * CANAntiqueAtlas.config.defaultScale),
                      CANAntiqueAtlas.config.defaultScale);
             slot.Itemstack.StackSize--;
+            slot.MarkDirty();
             /*MarkersData markersData = AntiqueAtlasMod.markersData.getMarkersData(atlasID, world);
             markersData.markDirty();*/
             (byEntity as EntityPlayer).Player?.InventoryManager.TryGiveItemstack(atlasStack);
-            base.OnHeldUseStart(slot, byEntity, blockSel, entitySel, useType, firstEvent, ref handling);
+            
+        }
+        public override bool OnHeldInteractStep(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
+        {
+            return base.OnHeldInteractStep(secondsUsed, slot, byEntity, blockSel, entitySel);
+        }
+        public override void OnHeldInteractStop(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
+        {
+            base.OnHeldInteractStop(secondsUsed, slot, byEntity, blockSel, entitySel);
         }
     }
 }

@@ -25,12 +25,12 @@ namespace CANAntiqueAtlas.src.core
         [ProtoMember(1)]
         public ConcurrentDictionary<FastVec2i, TileGroupSeen> tileGroups = new();
         [ProtoMember(2)]
-        public int key;
+        public long key;
         public AtlasSeenData()
         {
 
         }
-        public AtlasSeenData(int key)
+        public AtlasSeenData(long key)
         {
             this.key = key;
         }
