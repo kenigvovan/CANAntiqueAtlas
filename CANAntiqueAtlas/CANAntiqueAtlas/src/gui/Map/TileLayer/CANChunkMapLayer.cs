@@ -218,8 +218,6 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
 
         float mtThread1secAccum = 0f;
         float genAccum = 0f;
-        float diskSaveAccum = 0f;
-        Dictionary<FastVec2i, MapPieceDB> toSaveList = new Dictionary<FastVec2i, MapPieceDB>();
 
         public override void OnOffThreadTick(float dt)
         {
@@ -294,51 +292,7 @@ namespace CANAntiqueAtlas.src.gui.Map.TileLayer
 
 
                 readyMapPieces.Enqueue(new CANReadyMapPiece() { VariationNumber = variations, Biome = biomes, Cord = tileCoords });
-               // continue;
-                /*IMapChunk mc = api.World.BlockAccessor.GetMapChunk(cord.X, cord.Y);
-                if (mc == null)
-                {
-                    try
-                    {
-                        readyMapPieces.Enqueue(new ReadyMapPiece() { VariationNumber = tile.getVariationNumber(), Biome = tile.biomeID, Cord = cord });
-                        MapPieceDB piece = mapdb.GetMapPiece(cord);
-                        if (piece?.Pixels != null)
-                        {
-                            loadFromChunkPixels(cord, piece.Pixels);
-                        }
-                    }
-                    catch (ProtoBuf.ProtoException)
-                    {
-                        api.Logger.Warning("Failed loading map db section {0}/{1}, a protobuf exception was thrown. Will ignore.", cord.X, cord.Y);
-                    }
-                    catch (OverflowException)
-                    {
-                        api.Logger.Warning("Failed loading map db section {0}/{1}, a overflow exception was thrown. Will ignore.", cord.X, cord.Y);
-                    }
-
-                    continue;
-                }*/
-
-                //int[] tintedPixels = GenerateChunkImage(cord, mc, colorAccurate);
-               //if (tintedPixels == null)
-                {
-                    //lock (chunksToGenLock)
-                    {
-                        //chunksToGen.Enqueue(cord);
-                    }
-
-                    continue;
-                }
-
-               // toSaveList[cord.Copy()] = new MapPieceDB() { Pixels = tintedPixels };
-
-                //loadFromChunkPixels(cord, tintedPixels);
-            }
-
-            if (toSaveList.Count > 100 || diskSaveAccum > 4f)
-            {
-                diskSaveAccum = 0;
-                toSaveList.Clear();
+                continue;
             }
         }
 

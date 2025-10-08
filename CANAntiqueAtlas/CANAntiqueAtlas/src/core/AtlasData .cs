@@ -26,17 +26,6 @@ namespace CANAntiqueAtlas.src.core
     [ProtoContract]
     public class AtlasData
     {
-        public static  int VERSION = 3;
-        public static  string TAG_VERSION = "aaVersion";
-	    public static  string TAG_DIMENSION_MAP_LIST = "qDimensionMap";
-	    public static  string TAG_DIMENSION_ID = "qDimensionID";
-	    public static  string TAG_VISITED_CHUNKS = "qVisitedChunks";
-	
-	    // Navigation
-	    public static  string TAG_BROWSING_X = "qBrowseX";
-	    public static  string TAG_BROWSING_Y = "qBrowseY";
-	    public static  string TAG_BROWSING_ZOOM = "qBrowseZoom";
-        public static string TAG_KEY = "qKey";
         /** This map contains, for each dimension, a map of chunks the player
          * has seen. This map is thread-safe.
          * CAREFUL! Don't modify chunk coordinates that are already put in the map! */
@@ -47,7 +36,6 @@ namespace CANAntiqueAtlas.src.core
         string key;
         public AtlasData()
         {
-            var c = 3;
         }
         public AtlasData(string key)
         {
@@ -139,11 +127,6 @@ namespace CANAntiqueAtlas.src.core
             {
                 return false;
             }
-            //if (other.dimensionMap.size() != dimensionMap.size()) return false;
-            /*for (int key: dimensionMap.keySet())
-            {
-                if (!dimensionMap.get(key).equals(other.dimensionMap.get(key))) return false;
-            }*/
             return true;
         }
     }

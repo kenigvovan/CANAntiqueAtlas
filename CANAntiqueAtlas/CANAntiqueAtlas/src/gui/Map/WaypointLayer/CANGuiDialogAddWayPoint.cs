@@ -140,7 +140,7 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
             string name = SingleComposer.GetTextInput("nameInput").GetText();
             bool pinned = SingleComposer.GetSwitch("pinnedSwitch").On;
 
-            capi.SendChatMessage(string.Format("/waypoint addati {0} ={1} ={2} ={3} {4} {5} {6}", curIcon, WorldPos.X.ToString(GlobalConstants.DefaultCultureInfo), WorldPos.Y.ToString(GlobalConstants.DefaultCultureInfo), WorldPos.Z.ToString(GlobalConstants.DefaultCultureInfo), pinned, curColor, name));
+            capi.SendChatMessage(string.Format("/canwaypoint addati {0} ={1} ={2} ={3} {4} {5} {6}", curIcon, WorldPos.X.ToString(GlobalConstants.DefaultCultureInfo), WorldPos.Y.ToString(GlobalConstants.DefaultCultureInfo), WorldPos.Z.ToString(GlobalConstants.DefaultCultureInfo), pinned, curColor, name));
             TryClose();
             return true;
         }

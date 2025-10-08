@@ -139,7 +139,7 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
 
         private bool onDelete()
         {
-            capi.SendChatMessage(string.Format("/waypoint remove {0}", waypoint.Guid));
+            capi.SendChatMessage(string.Format("/canwaypoint remove {0}", waypoint.Guid));
             TryClose();
             return true;
         }
@@ -149,7 +149,7 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
             string name = SingleComposer.GetTextInput("nameInput").GetText();
             bool pinned = SingleComposer.GetSwitch("pinnedSwitch").On;
 
-            capi.SendChatMessage(string.Format("/waypoint modify {0} {1} {2} {3} {4}", wpIndex, ColorUtil.Int2Hex(waypoint.Color), waypoint.Icon, pinned, name));
+            capi.SendChatMessage(string.Format("/canwaypoint modify {0} {1} {2} {3} {4}", wpIndex, ColorUtil.Int2Hex(waypoint.Color), waypoint.Icon, pinned, name));
             TryClose();
             return true;
         }

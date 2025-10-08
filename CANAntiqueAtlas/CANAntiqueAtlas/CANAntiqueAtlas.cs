@@ -53,10 +53,18 @@ namespace CANAntiqueAtlas
         public PlayerMovementsListnerServer pmls;
         public override void Start(ICoreAPI api)
         {
+            if(api.Side == EnumAppSide.Client)
+            {
+                capi = api as ICoreClientAPI;
+            }
+            else
+            {
+                sapi = api as ICoreServerAPI;
+            }
             api.RegisterItemClass("CANItemAtlas", typeof(CANItemAtlas));
             api.RegisterItemClass("CANItemEmptyAtlas", typeof(CANItemEmptyAtlas));
             harmonyInstance = new Harmony(harmonyID);
-            harmonyInstance.Patch(typeof(WorldMapManager).GetMethod("ShouldLoad", new Type[] { typeof(EnumAppSide) }), prefix: new HarmonyMethod(typeof(harmPatches).GetMethod("Prefix_ModSystemShouldLoad")));
+            //harmonyInstance.Patch(typeof(WorldMapManager).GetMethod("ShouldLoad", new Type[] { typeof(EnumAppSide) }), prefix: new HarmonyMethod(typeof(harmPatches).GetMethod("Prefix_ModSystemShouldLoad")));
         }
         public override void StartServerSide(ICoreServerAPI api)
         {
@@ -147,6 +155,22 @@ namespace CANAntiqueAtlas
                     CANAntiqueAtlas.sapi.WorldManager.SaveGame.StoreData<AtlasData>(ServerMapInfoDataStringKey, ServerMapInfoData);
                 }                
             }, config.SaveMapChunksEveryNSeconds);
+            if (!config.allowCoordinateHud)
+            {
+                sapi.World.Config.SetBool("allowCoordinateHud", false);
+            }
+            else
+            {
+                sapi.World.Config.SetBool("allowCoordinateHud", true);
+            }
+            if (!config.allowMap)
+            {
+                sapi.World.Config.SetBool("allowMap", false);
+            }
+            else
+            {
+                sapi.World.Config.SetBool("allowMap", true);
+            }
         }
         public static TextCommandResult ShowStatsCommand(TextCommandCallingArgs args)
         {
@@ -268,7 +292,7 @@ namespace CANAntiqueAtlas
             biomeTextureMap.setTexture((int)BiomeType.Redwood, TextureSet.MEGA_SPRUCE);
             biomeTextureMap.setTexture((int)BiomeType.Jungle, TextureSet.JUNGLE);
             // biomeTextureMap.setTexture((int)BiomeType.Taiga, TextureSet.SNOW_PINES);
-            capi.World.Config.SetBool("allowCoordinateHud", false);
+            
         }
         private void loadConfig(ICoreAPI api)
         {        

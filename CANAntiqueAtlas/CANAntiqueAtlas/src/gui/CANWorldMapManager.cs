@@ -142,7 +142,7 @@ namespace CANAntiqueAtlas.src.gui
 
             if (!exists)
             {
-                capi.SendChatMessage(string.Format("/waypoint addati {0} ={1} ={2} ={3} {4} {5} {6}", "circle", x, y, z, false, "steelblue", text));
+                capi.SendChatMessage(string.Format("/canwaypoint addati {0} ={1} ={2} ={3} {4} {5} {6}", "circle", x, y, z, false, "steelblue", text));
             }
 
             elem?.CenterMapTo(new BlockPos(x, y, z));
@@ -209,7 +209,15 @@ namespace CANAntiqueAtlas.src.gui
             for (int i = 0; i < msg.Maplayers.Length; i++)
             {
                 Type type = MapLayerRegistry[msg.Maplayers[i].ForMapLayer];
-                MapLayers.FirstOrDefault(x => x.GetType() == type)?.OnDataFromServer(msg.Maplayers[i].Data);
+                foreach(var t in MapLayers)
+                {
+                    var x = t.GetType();
+                    if(type == x)
+                    {
+                        t.OnDataFromServer(msg.Maplayers[i].Data);
+                    }
+                }
+                //MapLayers.FirstOrDefault(x => x.GetType() == type)?.OnDataFromServer(msg.Maplayers[i].Data);
             }
         }
 

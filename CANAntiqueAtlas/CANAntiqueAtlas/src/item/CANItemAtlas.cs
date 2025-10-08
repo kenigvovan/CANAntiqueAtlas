@@ -86,7 +86,7 @@ namespace CANAntiqueAtlas.src.item
             base.OnHeldUseStart(slot, byEntity, blockSel, entitySel, useType, firstEvent, ref handling);
             if (byEntity.World.Side == EnumAppSide.Client)
             {
-                long atlasId = slot?.Itemstack.Attributes.GetLong("atlasID", -1) ?? -1;
+                long atlasId = slot.Itemstack?.Attributes.GetLong("atlasID", -1) ?? -1;
                 if(atlasId < 0)
                 {
                     return;

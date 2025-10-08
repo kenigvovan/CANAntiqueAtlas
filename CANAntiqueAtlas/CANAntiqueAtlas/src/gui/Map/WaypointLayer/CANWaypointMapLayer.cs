@@ -134,7 +134,7 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
                 sapi.Event.GameWorldSave += OnSaveGameGettingSaved;
                 sapi.Event.PlayerDeath += Event_PlayerDeath;
                 var parsers = sapi.ChatCommands.Parsers;
-                sapi.ChatCommands.Create("waypoint")
+                sapi.ChatCommands.Create("canwaypoint")
                     .WithDescription("Put a waypoint at this location which will be visible for you on the map")
                     .RequiresPrivilege(Privilege.chat)
                     .BeginSubCommand("deathwp")
@@ -239,11 +239,11 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
 
         private bool IsMapDisallowed(out TextCommandResult response)
         {
-            if (!api.World.Config.GetBool("allowMap", true))
+            /*if (!api.World.Config.GetBool("allowMap", true))
             {
                 response = TextCommandResult.Success(Lang.Get("Maps are disabled on this server"));
                 return true;
-            }
+            }*/
 
             response = null;
             return false;
@@ -600,7 +600,7 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
                     }
                     else
                     {
-                        data = sapi.WorldManager.SaveGame.GetData("playerMapMarkers");
+                        //data = sapi.WorldManager.SaveGame.GetData("playerMapMarkers");
                         if (data != null) Waypoints = JsonUtil.FromBytes<Dictionary<long, HashSet<CANWaypoint>>>(data);
                     }
 
@@ -616,6 +616,20 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
                         }
                         if (wp.Title == null) wp.Title = wp.Text; // Not sure how this happens. For some reason the title moved into text
                     }*/
+                    List<long> removeKeys = new();
+                    foreach (var it in this.Waypoints)
+                    {
+                        if(it.Value == null)
+                        {
+                            removeKeys.Add(it.Key);
+                            sapi.World.Logger.Error("Waypoint with no information loaded, will remove");
+                            continue;
+                        }
+                    }
+                    foreach (var it in removeKeys)
+                    {
+                        this.Waypoints.Remove(it);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -639,13 +653,23 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
         {
             //ownWaypoints.Clear();
             var di = SerializerUtil.Deserialize<Dictionary<long, HashSet<CANWaypoint>>>(data);
+            List<long> toRemove = new();
             foreach(var it in di)
             {
+                if(it.Value == null)
+                {
+                    toRemove.Add(it.Key);
+                    continue;
+                }
                 ownWaypoints[it.Key] = it.Value;
                 /*if (ownWaypoints.TryGetValue(it.Key, out var localVal))
                 {
                     ownWaypoints[it.Key] = it.Value;
                 }*/
+            }
+            foreach(var it in toRemove)
+            {
+                ownWaypoints.Remove(it);
             }
             //ownWaypoints.AddRange();
             RebuildMapComponents();

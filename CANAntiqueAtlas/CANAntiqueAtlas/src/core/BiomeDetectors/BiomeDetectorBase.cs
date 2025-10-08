@@ -49,10 +49,8 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                 {
                     blockCoords = new BlockPos(x * 16 + sx * stepX, 110, z * 16 + sz * stepZ);
                     var rainPoint = (blockCoords.Z % 32) * 32 + (blockCoords.X % 32);
-                    //blockCoords.Y = p[rainPoint];
-                    //Console.WriteLine(string.Format("{0} {1} {2}", blockCoords.X - CANAntiqueAtlas.sapi.World.DefaultSpawnPosition.AsBlockPos.X, blockCoords.Y, blockCoords.Z - CANAntiqueAtlas.sapi.World.DefaultSpawnPosition.AsBlockPos.Z));
                     var ch = CANAntiqueAtlas.sapi.World.BlockAccessor.GetRainMapHeightAt(blockCoords);
-                    //var h = CANAntiqueAtlas.sapi.World.BlockAccessor.GetTerrainMapheightAt(blockCoords);
+                    
                     blockCoords.Y = ch;
                     var tmpBlock = CANAntiqueAtlas.sapi.World.BlockAccessor.GetBlock(blockCoords);
                     
@@ -137,114 +135,6 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                         }
                     }
                 }
-            
-
-
-
-
-            /*for (int sx = 0; sx < 16; sx++)
-            {
-                for (int sz = 0; sz < 16; sz++)
-                {
-                    blockCoords = new BlockPos(x * 16 + sx * stepX, 110, z * 16 + sz * stepZ);
-                    var rainPoint = (blockCoords.Z % 32) * 32 + (blockCoords.X % 32);
-                    blockCoords.Y = p[rainPoint];
-                    //Console.WriteLine(string.Format("{0} {1} {2}", blockCoords.X - CANAntiqueAtlas.sapi.World.DefaultSpawnPosition.AsBlockPos.X, blockCoords.Y, blockCoords.Z - CANAntiqueAtlas.sapi.World.DefaultSpawnPosition.AsBlockPos.Z));
-                    var ch = CANAntiqueAtlas.sapi.World.BlockAccessor.GetRainMapHeightAt(blockCoords);
-                    //var h = CANAntiqueAtlas.sapi.World.BlockAccessor.GetTerrainMapheightAt(blockCoords);
-                    var tmpBlock = CANAntiqueAtlas.sapi.World.BlockAccessor.GetBlock(blockCoords);
-                    blockCoords.Y = ch;
-                    Block block = tmpBlock;
-                    int i = 0;
-                    var tmpCoords = blockCoords.Copy();
-                    if ((tmpBlock.Code.Path.Contains("leaves") || tmpBlock.Code.Path.Contains("log") || tmpBlock.Code.Path.Contains("air")))
-                    {
-                        while (i < 50 && (tmpBlock.Code.Path.Contains("leaves") || tmpBlock.Code.Path.Contains("log") || tmpBlock.Code.Path.Contains("air")))
-                        {
-                            tmpCoords.Y -= 1;
-                            tmpBlock = CANAntiqueAtlas.sapi.World.BlockAccessor.GetBlock(tmpCoords);
-                            i++;
-                            if(tmpBlock.Code.Path.Contains("air"))
-                            {
-                                block = tmpBlock;
-                            }
-                        }
-
-                    }
-                    
-                    BiomeConditions bestSelection = null;
-                    Console.WriteLine(block.Code.Path);
-                    foreach (var it in this.BiomeConditionsSet)
-                    {
-                        if(it.Fullfills(cond, block, blockCoords.Y - i))
-                        {
-                            if (bestSelection == null || it.Priority > bestSelection.Priority)
-                            {
-                                bestSelection = it;
-                            }
-                        }
-                    }
-                    if (bestSelection != null)
-                    {
-                        if (!biomeOccurrences.ContainsKey(bestSelection.BiomeType))
-                        {
-                            biomeOccurrences[bestSelection.BiomeType] = 1;   
-                        }
-                        else
-                        {  
-                            biomeOccurrences[bestSelection.BiomeType]++;                            
-                        }
-                    }
-                    else
-                    {
-                        continue;
-                        if(biomeOccurrences.TryGetValue(BiomeType.Glacier, out var cur))
-                        {
-                            biomeOccurrences[BiomeType.Glacier]++;
-                        }
-                        else
-                        {
-                            biomeOccurrences[BiomeType.Glacier] = 1;
-                        }
-                    }
-
-                }
-            }*/
-            /*for (int sx = 0; sx < 4; sx++)
-            {
-                for (int sz = 0; sz < 4; sz++)
-                {
-                    blockCoords = new BlockPos(x * 16 + sx * stepX, 110, z * 16 + sz * stepZ);
-                    var block = CANAntiqueAtlas.sapi.World.BlockAccessor.GetBlock(blockCoords);
-                    if(block.Code.Path.Contains("water"))
-                    {
-                        var c = 3;
-                    }
-                    Console.WriteLine(block.Code.Path + " " + yMax.ToString());
-                    if(block.IsLiquid() && block.LiquidCode == "water")
-                    {
-                        if(biomeOccurrences.TryGetValue(BiomeType.Water, out var curVal))
-                        {
-                            biomeOccurrences[BiomeType.Water] = curVal + priorityWaterPool;
-                        }
-                        else
-                        {
-                            biomeOccurrences[BiomeType.Water] = priorityWaterPool;
-                        }
-                    }
-
-                    BiomeType biomeId = ClassifyBiomeID(cond);
-
-                    if (!biomeOccurrences.ContainsKey(biomeId))
-                    {
-                        biomeOccurrences[biomeId] = 1;
-                    }
-                    else
-                    {
-                        biomeOccurrences[biomeId]++;
-                    }
-                }
-            }*/
 
             StringBuilder stringBuilder = new StringBuilder();
             foreach (var kvp in biomeOccurrences)
@@ -297,38 +187,6 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
         {
             this.BiomeConditionsSet.Add(conditions);
         }
-        /*private BiomeType ClassifyBiomeID(ClimateCondition cond)
-        {
-            double temp = cond.Temperature;   // °C
-            double rainfall = cond.Rainfall;  // 0..1
-            double fertility = cond.Fertility; // 0..1, можно использовать для болот
-
-
-            if (temp < -5)
-                return BiomeType.Glacier;
-            if (temp < 2)
-            {
-                if (rainfall < 0.3) return BiomeType.Tundra; // Tundra
-                return BiomeType.Taiga;                    // Taiga
-            }
-
-            if (temp < 10)
-            {
-                if (rainfall < 0.4) return BiomeType.Plains; // Plains / Grassland
-                return BiomeType.TemperateForest;                    // Temperate Forest
-            }
-
-            if (temp < 20)
-            {
-                if (rainfall < 0.3) return BiomeType.Savanna; // Savanna
-                if (rainfall > 0.7 && fertility > 0.5) return BiomeType.Swamp; // Swamp / Marsh
-                return BiomeType.Rainforest;                     // Rainforest / Jungle
-            }
-            if (rainfall < 0.2) return BiomeType.Desert;     // Desert
-            if (rainfall > 0.7 && fertility > 0.5) return BiomeType.Swamp; // Swamp / Marsh
-            return BiomeType.Rainforest;                         // Rainforest / Jungle
-        }*/
-
         void IBiomeDetector.RegisterBiome(BiomeConditions conditions)
         {
             RegisterBiome(conditions);

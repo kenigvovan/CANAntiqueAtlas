@@ -17,9 +17,6 @@ namespace CANAntiqueAtlas.src.core
     [ProtoContract]
     public class TileGroup: ITileStorage
     {
-        public static string TAG_POSITION = "p";
-	    public static string TAG_TILES = "t";
-
 	    /** The width/height of this TileGroup */
 	    public static int CHUNK_STEP = 16;
 
@@ -29,17 +26,13 @@ namespace CANAntiqueAtlas.src.core
 
         /** The tiles in this scope */
         [ProtoMember(1)]
-        //public Tile[] tiles;// = new Tile[CHUNK_STEP * CHUNK_STEP];
         public Dictionary<long, Tile> tiles = new();
         public TileGroup()
         {
-            //tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
+            
         }
         public TileGroup(int x, int y)
         {
-            // tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
-            //tiles = new Tile[CHUNK_STEP * CHUNK_STEP];
-            //scope = new Rect(0, 0, CHUNK_STEP, CHUNK_STEP);
             scope.minX = x;
             scope.minY = y;
             scope.maxX = scope.minX + CHUNK_STEP - 1;
@@ -51,7 +44,6 @@ namespace CANAntiqueAtlas.src.core
             {
                 int rx = x - scope.minX;
                 int ry = y - scope.minY;
-                //(uint)((uint)x + ((long)y << 16))
                 tiles[(uint)((uint)rx + ((long)ry << 16))] = tile;
             }
         }
@@ -71,7 +63,6 @@ namespace CANAntiqueAtlas.src.core
                 int ry = y - scope.minY;
                 tiles.TryGetValue((uint)((uint)rx + ((long)ry << 16)), out Tile tile);
                 return tile;
-                //return tiles[rx * CHUNK_STEP + ry];
             }
             return null;
         }
