@@ -32,6 +32,7 @@ namespace CANAntiqueAtlas.src.gui
             }
         }
         public float SavedZoom = 1;
+        public bool hiddenMarks = false;
         public CANGuiDialogWorldMap(OnViewChangedDelegate viewChanged, OnViewChangedSyncDelegate viewChangedSync, ICoreClientAPI capi, List<string> tabnames)
             : base("", capi)
         {
@@ -156,13 +157,20 @@ namespace CANAntiqueAtlas.src.gui
             //0.4 - 0.625 - - 10
             var ff = (0.5f / (float)RuntimeEnv.GUIScale);
             compo.AddImageBG(bgBounds, new AssetLocation("canantiqueatlas:gui/book.png"), scale: (0.3333f / (float)RuntimeEnv.GUIScale) - 0.001f);
-            //compo.AddImage
+           //compo.AddImage
             var innerMap = mapBounds.FlatCopy();
             var offsetFull = 36 * (float)RuntimeEnv.GUIScale;
             innerMap.fixedWidth -= offsetFull;
             innerMap.fixedHeight -= offsetFull;
             innerMap.fixedOffsetX += offsetFull / 2;
             innerMap.fixedOffsetY += offsetFull / 2;
+            ElementBounds hideMarkersButton = ElementBounds.FixedSize(48, 48);
+            hideMarkersButton.WithFixedPosition(innerMap.fixedX + innerMap.fixedWidth + 8, mapBounds.fixedY + 100);
+            CANGuiComposerHelpers.AddButtonWithImage(compo, new AssetLocation("canantiqueatlas:gui/hide_markers.png"), new AssetLocation("canantiqueatlas:gui/show_markers.png"), () =>
+            {
+                OnTabClicked(0);
+                return true;
+            }, hideMarkersButton, EnumButtonStyle.Normal, "hideMarkersButton", this.hiddenMarks);
             compo.AddIf(dlgType == EnumDialogType.Dialog)
                 //.AddDialogTitleBar(Lang.Get("World Map", Array.Empty<object>()), new Action(this.OnTitleBarClose), null, null, null)
                 //.AddInset(mapBounds, 2, 0.85f)
@@ -237,14 +245,16 @@ namespace CANAntiqueAtlas.src.gui
             this.updateMaplayerExtrasState();
             return compo;
         }
-        private void OnTabClicked(int arg1, GuiTab tab)
+        private void OnTabClicked(int arg1)
         {
             string layerGroupCode = this.tabnames[arg1];
             foreach (CANMapLayer ml in this.MapLayers)
             {
-                if (ml.LayerGroupCode == layerGroupCode)
+                if (ml.LayerGroupCode == "waypoints")
                 {
-                    ml.Active = tab.Active;
+                    ml.Active = !ml.Active;
+                    hiddenMarks = ml.Active;
+                    Console.WriteLine(ml.Active);
                 }
             }
             this.updateMaplayerExtrasState();

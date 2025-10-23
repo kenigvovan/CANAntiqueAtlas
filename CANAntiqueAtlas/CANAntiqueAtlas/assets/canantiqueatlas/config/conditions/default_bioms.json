@@ -2,7 +2,7 @@
     {
         "Name": "forest",
 
-        "BiomeType": "TemperateForest",
+        "BiomeName": "TemperateForest",
 
         "MaxHeight": 120,
 
@@ -28,7 +28,7 @@
     {
         "Name": "sparseforest",
 
-        "BiomeType": "SparseForest",
+        "BiomeName": "SparseForest",
 
         "MaxHeight": 139,
 
@@ -54,7 +54,7 @@
     {
         "Name": "desert",
 
-        "BiomeType": "Desert",
+        "BiomeName": "Desert",
 
         "MaxHeight": 120,
 
@@ -79,7 +79,7 @@
     },
     {
         "Name": "plains",
-        "BiomeType": "Plains",
+        "BiomeName": "Plains",
         "MaxHeight": 125,
         "MinHeight": 106,
         "BlockCodeWildCards": [],
@@ -97,7 +97,7 @@
     },
     {
         "Name": "hills",
-        "BiomeType": "Hills",
+        "BiomeName": "Hills",
         "MaxHeight": 139,
         "MinHeight": 125,
         "BlockCodeWildCards": [],
@@ -118,7 +118,7 @@
     {
         "Name": "water",
 
-        "BiomeType": "Water",
+        "BiomeName": "Water",
 
         "MaxHeight": 120,
 
@@ -144,7 +144,7 @@
     {
         "Name": "plateau",
 
-        "BiomeType": "Plateau",
+        "BiomeName": "Plateau",
 
         "MaxHeight": 180,
 
@@ -170,7 +170,7 @@
     {
         "Name": "MountainsSnowCaps",
 
-        "BiomeType": "MountainsSnowCaps",
+        "BiomeName": "MountainsSnowCaps",
 
         "MaxHeight": 250,
 
@@ -196,7 +196,7 @@
     {
         "Name": "Mountains",
 
-        "BiomeType": "Mountains",
+        "BiomeName": "Mountains",
 
         "MaxHeight": 250,
 
@@ -220,7 +220,7 @@
     {
         "Name": "HotSpring",
 
-        "BiomeType": "HotSpring",
+        "BiomeName": "HotSpring",
 
         "MaxHeight": 180,
 
@@ -246,7 +246,7 @@
     {
         "Name": "Swamp",
 
-        "BiomeType": "Swamp",
+        "BiomeName": "Swamp",
 
         "MaxHeight": 134,
 
@@ -278,7 +278,7 @@
     {
         "Name": "Redwood",
 
-        "BiomeType": "Redwood",
+        "BiomeName": "Redwood",
 
         "MaxHeight": 190,
 
@@ -304,7 +304,7 @@
     {
         "Name": "Jungle",
 
-        "BiomeType": "Jungle",
+        "BiomeName": "Jungle",
 
         "MaxHeight": 190,
 

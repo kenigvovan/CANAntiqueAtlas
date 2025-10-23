@@ -43,7 +43,8 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
         }
         //public HashSet<BiomeConditions> BiomeConditionsSet { get; set; }
         /** Finds the biome ID to be used for a given chunk. */
-        BiomeType GetBiomeID(IMapChunk chunk, Vec2i chunkCoords, int x, int z);
+        int GetBiomeID(IMapChunk chunk, Vec2i chunkCoords, int x, int z);
         void RegisterBiome(BiomeConditions conditions);
+        void AddToFinalPriorityMap(Dictionary<int, float> finalPriorityMap);
     }
 }

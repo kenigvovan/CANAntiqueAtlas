@@ -171,7 +171,7 @@ namespace CANAntiqueAtlas.src.playerMovement
                     }
                 }
 
-                int scanRadius = 5; //5
+                int scanRadius = CANAntiqueAtlas.config.scanRadius;
                 int playerX = (int)player.Entity.ServerPos.X >> 4;
                 int playerZ = (int)player.Entity.ServerPos.Z >> 4;
                 // Look at chunks around in a circular area:
@@ -194,7 +194,7 @@ namespace CANAntiqueAtlas.src.playerMovement
                             {
                                 Tile oldTile = mapData.GetTile(x + i, z + j);
 
-                                BiomeType biomeId = BiomeType.NOT_FOUND;
+                                int biomeId = -1;
                                 if (oldTile == null)
                                 {
                                     //Thread.Sleep(500);
@@ -217,7 +217,7 @@ namespace CANAntiqueAtlas.src.playerMovement
                                     // Scanning new chunk:
                                     //NEED TO SCAN 16X16 CHUNKS WITH CONDITIONS OF 32X32 CHUNK
                                     biomeId = biomeDetector.GetBiomeID(chunk, chunkCoords, x + i, z + j);
-                                    if (biomeId != BiomeType.NOT_FOUND)
+                                    if (biomeId != -1)
                                     {
                                         mapData.SetTile(x + i, z + j, new Tile((int)biomeId));
                                         oldTile = new Tile((int)biomeId);

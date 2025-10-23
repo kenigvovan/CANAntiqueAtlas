@@ -13,7 +13,9 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
     public class BiomeConditions
     {
         public string Name { get; set; }
-        public BiomeType BiomeType {  get; set; }
+        public string BiomeName { get; set; }
+        public int BiomeId { get; set; }
+        //public BiomeType BiomeType {  get; set; }
         public bool Fallback { get; set; } = false;
         public int MaxHeight {  get; set; }
         public int MinHeight { get; set; }
@@ -36,11 +38,6 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
         }
         public bool Fullfills(ClimateCondition cond, Block block, int height, float heightRange)
         {
-            if (block.Code.Path.Contains("redwood"))
-            {
-                var c = 3;
-            }
-            //"sludgygravel"
             if ((MinHeightRange != -1 && heightRange < MinHeightRange) || (MaxHeightRange != -1 && heightRange > MaxHeightRange)) return false;
             if (this.MinHeight > height || this.MaxHeight < height) return false;
             if (cond.Temperature < MinTemperature || cond.Temperature > MaxTemperature) return false;
@@ -50,10 +47,6 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
             if (cond.ShrubDensity < MinShrubDensity || cond.ShrubDensity > MaxShrubDensity) return false;
             if (block != null && BlockCodeWildCards.Count > 0)
             {
-                if (block.Code.Path.Contains("redwood"))
-                {
-                    var c = 3;
-                }
                 bool found = false;
                 foreach (var it in BlockCodeWildCards)
                 {

@@ -15,23 +15,29 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
 {
     public class BiomeDetectorBase: IBiomeDetector
     {
-        /** Increment the counter for water biomes by this much during iteration.
-         * This is done so that water pools are more visible. */
-        private static int priorityWaterPool = 3, prioritylavaPool = 6;
-
         public HashSet<BiomeConditions> BiomeConditionsSet = new();
-        public Dictionary<BiomeType, float> FinalSelectionPriority = new() { 
-            { BiomeType.HotSpring, 1 },
-            { BiomeType.Redwood, 0.99f },
-            { BiomeType.Jungle, 0.99f } };
+        public Dictionary<int, float> FinalSelectionPriority = new();
 
+        public BiomeDetectorBase()
+        {
+        }
 
+        public void AddToFinalPriorityMap(Dictionary<int, float> finalPriorityMap)
+        {
+            foreach (var it in FinalSelectionPriority)
+            {
+                if (!finalPriorityMap.ContainsKey(it.Key))
+                {
+                    FinalSelectionPriority[it.Key] = it.Value;
+                }
+            }
+        }
         /** If no valid biome ID is found, returns {@link IBiomeDetector#NOT_FOUND}. */
-        public BiomeType GetBiomeID(IMapChunk chunk, Vec2i chunkCoords, int x, int z)
+        public int GetBiomeID(IMapChunk chunk, Vec2i chunkCoords, int x, int z)
         {
             int sizeX = 32;
             int sizeZ = 32;
-            Dictionary<BiomeType, int> biomeOccurrences = new();
+            Dictionary<int, int> biomeOccurrences = new();
 
             int stepX = sizeX / 16;
             int stepZ = sizeZ / 16;
@@ -103,10 +109,6 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                     amountBlocks[it.Code.Path] = 1;
                 }
             }
-            foreach(var it in amountBlocks)
-            {
-                Console.WriteLine(string.Format("{0}: {1}", it.Key, it.Value));
-            }
 
             for(int i = 0; i < 16; i++)
                 for (int j = 0; j < 16; j++) 
@@ -125,33 +127,35 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                     }
                     if (bestSelection != null)
                     {
-                        if (!biomeOccurrences.ContainsKey(bestSelection.BiomeType))
+                        if (!biomeOccurrences.ContainsKey(bestSelection.BiomeId))
                         {
-                            biomeOccurrences[bestSelection.BiomeType] = 1;
+                            biomeOccurrences[bestSelection.BiomeId] = 1;
                         }
                         else
                         {
-                            biomeOccurrences[bestSelection.BiomeType]++;
+                            biomeOccurrences[bestSelection.BiomeId]++;
                         }
                     }
                 }
-
-            StringBuilder stringBuilder = new StringBuilder();
-            foreach (var kvp in biomeOccurrences)
+            if (CANAntiqueAtlas.config.debugMode)
             {
-                stringBuilder.AppendLine($"{kvp.Key}: {kvp.Value}");
+                foreach (var it in amountBlocks)
+                {
+                    Console.WriteLine(string.Format("{0}: {1}", it.Key, it.Value));
+                }
+                StringBuilder stringBuilder = new StringBuilder();
+                foreach (var kvp in biomeOccurrences)
+                {
+                    stringBuilder.AppendLine($"{kvp.Key}: {kvp.Value}");
+                }
+                stringBuilder.AppendLine(string.Format("temp: {0}, rain: {1}, fert: {2}, forest: {3}, shrub: {4}", cond.Temperature, cond.Rainfall, cond.Fertility, cond.ForestDensity, cond.ShrubDensity));
+
+                Console.WriteLine(stringBuilder.ToString());
             }
-            stringBuilder.AppendLine(string.Format("temp: {0}, rain: {1}, fert: {2}, forest: {3}, shrub: {4}", cond.Temperature, cond.Rainfall, cond.Fertility, cond.ForestDensity, cond.ShrubDensity));
-
-            Console.WriteLine(stringBuilder.ToString());    
-
-            BiomeType meanBiomeId = BiomeType.NOT_FOUND;
+            int meanBiomeId = -1;
             int meanBiomeOccurences = 0;
             float oldSelectionPrioValue = 0;
-            if(biomeOccurrences.ContainsKey(BiomeType.Redwood))
-            {
-                var c = 3;
-            }
+
             foreach (var kvp in biomeOccurrences)
             {
                 if(!FinalSelectionPriority.TryGetValue(kvp.Key, out float newValue))
@@ -176,9 +180,9 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                     meanBiomeOccurences = kvp.Value;
                 }
             }
-            if(meanBiomeId == BiomeType.NOT_FOUND)
+            if(meanBiomeId == -1)
             {
-                meanBiomeId = BiomeType.Plains;
+                meanBiomeId = 1;
             }
 
             return meanBiomeId;

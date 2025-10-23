@@ -18,18 +18,9 @@ namespace CANAntiqueAtlas.src.network.server
      * @author Hunternif
      */
     [ProtoContract]
-    public class BrowsingPositionPacket
-    {      
-        public static double ZOOM_SCALE_FACTOR = 1024;
+    public class SyncBiomesPacket
+    {
         [ProtoMember(1)]
-        public int atlasID;
-        [ProtoMember(2)]
-        public int dimension;
-        [ProtoMember(3)]
-        public int x;
-        [ProtoMember(4)]
-        public int y;
-        [ProtoMember(5)]
-        public double zoom;
+        public Dictionary<string, int> BiomesMapping;
     }
 }

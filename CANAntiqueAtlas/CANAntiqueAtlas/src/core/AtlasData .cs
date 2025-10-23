@@ -100,7 +100,7 @@ namespace CANAntiqueAtlas.src.core
          * during the first run of ItemAtals.onUpdate(). */
         public void syncOnPlayer(int atlasID, EntityPlayer player)
         {
-            CANAntiqueAtlas.serverChannel.SendPacket(
+            /*CANAntiqueAtlas.serverChannel.SendPacket(
                            new MapDataPacket()
                            {
                                atlasID = atlasID,
@@ -108,7 +108,7 @@ namespace CANAntiqueAtlas.src.core
                            }
                            , player.Player as IServerPlayer);
 
-            this.dimensionData.syncOnPlayer(atlasID, player);
+            this.dimensionData.syncOnPlayer(atlasID, player);*/
             
             //Log.info("Sent Atlas #%d data to player %s", atlasID, player.getCommandSenderName());
             playersSentTo.Add(player);

@@ -6,7 +6,7 @@
         "KenigVovan"
     ],
     "description": "Replacement of default map with item atlas",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "dependencies": {
         "game": "",
         "survival": ""

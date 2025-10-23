@@ -20,5 +20,7 @@ namespace CANAntiqueAtlas.src
         public float SaveMapChunksEveryNSeconds = 60;
         public bool allowCoordinateHud = false;
         public bool allowMap = false;
+        public bool inputDefaultTextureSets = true;
+        public bool debugMode = false;
     }
 }
