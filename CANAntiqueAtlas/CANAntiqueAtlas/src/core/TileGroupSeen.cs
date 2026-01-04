@@ -20,7 +20,7 @@ namespace CANAntiqueAtlas.src.core
 
         /** The tiles in this scope */
         [ProtoMember(1)]
-        bool[] tiles;
+        public bool[] tiles;
         public TileGroupSeen()
         {
            // tiles = new TileSeen[CHUNK_STEP * CHUNK_STEP];
@@ -74,7 +74,7 @@ namespace CANAntiqueAtlas.src.core
 
         public bool HasTileAt(int x, int y)
         {
-            return GetTile(x, y) == null;
+            return GetTile(x, y);
         }
         public Rect GetScope()
         {

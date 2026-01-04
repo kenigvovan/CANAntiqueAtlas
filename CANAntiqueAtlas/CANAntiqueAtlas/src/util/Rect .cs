@@ -87,7 +87,7 @@ namespace CANAntiqueAtlas.src.util
             return minX == r.minX && minY == r.minY && maxX == r.maxX && maxY == r.maxY;
         }
 
-        protected Rect Clone()
+        public Rect Clone()
         {
             return new Rect(this);
         }

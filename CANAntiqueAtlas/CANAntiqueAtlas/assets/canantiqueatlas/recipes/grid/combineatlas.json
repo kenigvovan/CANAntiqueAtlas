@@ -1,0 +1,18 @@
+[
+    {
+        "ingredientPattern": "F,F",
+        "ingredients": {
+            "F": {
+                "type": "item",
+                "code": "canantiqueatlas:canatlas"
+            }
+        },
+        "width": 1,
+        "height": 2,
+        "output": {
+            "type": "item",
+            "code": "canantiqueatlas:canatlas",
+            "quantity": 1
+        }
+    }
+]

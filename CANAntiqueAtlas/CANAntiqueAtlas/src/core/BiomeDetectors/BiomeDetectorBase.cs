@@ -39,8 +39,8 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
             int sizeZ = 32;
             Dictionary<int, int> biomeOccurrences = new();
 
-            int stepX = sizeX / 16;
-            int stepZ = sizeZ / 16;
+            int stepX = sizeX / 32;
+            int stepZ = sizeZ / 32;
             var yMax = chunk.YMax;
             var p = chunk.RainHeightMap;
             ClimateCondition cond = CANAntiqueAtlas.sapi.World.BlockAccessor.GetClimateAt(new BlockPos(chunkCoords.X * 32, 100, chunkCoords.Y * 32), EnumGetClimateMode.WorldGenValues);
@@ -53,7 +53,7 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
             {
                 for (int sz = 0; sz < 16; sz++)
                 {
-                    blockCoords = new BlockPos(x * 16 + sx * stepX, 110, z * 16 + sz * stepZ);
+                    blockCoords = new BlockPos(x * 16 + sx * stepX, Climate.Sealevel, z * 16 + sz * stepZ); //110
                     var rainPoint = (blockCoords.Z % 32) * 32 + (blockCoords.X % 32);
                     var ch = CANAntiqueAtlas.sapi.World.BlockAccessor.GetRainMapHeightAt(blockCoords);
                     
@@ -190,6 +190,8 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
         void RegisterBiome(BiomeConditions conditions)
         {
             this.BiomeConditionsSet.Add(conditions);
+            conditions.MaxHeight = (int)(conditions.MaxHeightNormal * CANAntiqueAtlas.sapi.World.BlockAccessor.MapSizeY);
+            conditions.MinHeight = (int)(conditions.MinHeightNormal * CANAntiqueAtlas.sapi.World.BlockAccessor.MapSizeY);
         }
         void IBiomeDetector.RegisterBiome(BiomeConditions conditions)
         {

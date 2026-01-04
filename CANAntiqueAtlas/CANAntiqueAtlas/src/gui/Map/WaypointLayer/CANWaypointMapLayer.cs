@@ -485,7 +485,7 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
 
                 AddWaypoint(waypoint, player);
             }        
-            return TextCommandResult.Success(Lang.Get("Ok, waypoint nr. {0} added", returnIds.ToArray()));
+            return TextCommandResult.Success(Lang.Get("Ok, waypoint added"));
         }
 
         public int AddWaypoint(CANWaypoint waypoint, IServerPlayer player)
@@ -511,20 +511,10 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
         {
             sapi.WorldManager.SaveGame.StoreData("CAN_playerMapMarkers_v2", SerializerUtil.Serialize(Waypoints));
         }
-
-
-        [Obsolete("Receiving the OnViewChangedPacket now calls: OnViewChangedServer(fromPlayer, int x1, int z1, int x2, int z2) but retained in 1.20.10 for backwards compatibility")]
-        public override void OnViewChangedServer(IServerPlayer fromPlayer, List<FastVec2i> nowVisible, List<FastVec2i> nowHidden)
+        public override void OnViewChangedServer(IServerPlayer fromPlayer, int x1, int z1, int x2, int z2)
         {
             ResendWaypoints(fromPlayer);
         }
-
-        public override void OnViewChangedServer(IServerPlayer fromPlayer, int x1, int z1, int x2, int z2)
-        {
-            OnViewChangedServer(fromPlayer, null, null);
-        }
-
-
         public override void OnMapOpenedClient()
         {
             reloadIconTextures();
@@ -779,7 +769,31 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
 
             mapSink.SendMapDataToClient(this, toPlayer, SerializerUtil.Serialize(hisMarkers));*/
         }
+        public void OnAtlasCombined(long firstNum, long secondNum, long newNum)
+        {
+            this.Waypoints.TryGetValue(firstNum, out var firstWaypoints);
+            this.Waypoints.TryGetValue(secondNum, out var secondWaypoints);
 
+            if(firstWaypoints == null && secondWaypoints == null)
+            {
+                return;
+            }
+            this.Waypoints[newNum] = new HashSet<CANWaypoint>();
+            if (firstWaypoints != null)
+            {
+                foreach (var wp in firstWaypoints)
+                {
+                    this.Waypoints[newNum].Add(wp);
+                }
+            }
+            if (secondWaypoints != null)
+            {
+                foreach (var wp in secondWaypoints)
+                {
+                    this.Waypoints[newNum].Add(wp);
+                }
+            }
+        }
 
 
         public override string Title => "Player Set Markers";

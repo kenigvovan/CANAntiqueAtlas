@@ -17,7 +17,9 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
         public int BiomeId { get; set; }
         //public BiomeType BiomeType {  get; set; }
         public bool Fallback { get; set; } = false;
-        public int MaxHeight {  get; set; }
+        public float MaxHeightNormal {  get; set; }
+        public float MinHeightNormal { get; set; }
+        public int MaxHeight { get; set; }
         public int MinHeight { get; set; }
         public HashSet<string> BlockCodeWildCards = new();
         public float Priority {  get; set; }

@@ -8,14 +8,18 @@ using System.Threading.Tasks;
 using CANAntiqueAtlas.src.core;
 using CANAntiqueAtlas.src.core.BiomeDetectors;
 using CANAntiqueAtlas.src.gui;
+using CANAntiqueAtlas.src.gui.Map.WaypointLayer;
 using CANAntiqueAtlas.src.network.client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.Common.Database;
 using Vintagestory.GameContent;
+using static System.Reflection.Metadata.BlobBuilder;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static CANAntiqueAtlas.src.core.BiomeDetectors.IBiomeDetector;
 using static Vintagestory.Server.Timer;
 
@@ -66,9 +70,40 @@ namespace CANAntiqueAtlas.src.item
                 var inv = slot.Inventory;
                 if (inv != null && (inv.ClassName.Equals("hotbar") || inv.ClassName.Equals("backpack")))
                 {
+                    if (slot.Itemstack.Attributes.HasAttribute("atlascombine"))
+                    {
+                        long newAtlasId = GetNextAtlasID();
+                        var newAtlasData = new AtlasSeenData(newAtlasId);
+
+                        var first = slot.Itemstack.Attributes.GetLong("atlascombinefirst");
+                        var second = slot.Itemstack.Attributes.GetLong("atlascombinesecond");
+                        if (!CANAntiqueAtlas.ServerSeenChunksByAtlases.TryGetValue(first, out var firstAtlasData))
+                        {
+                            return;
+                        }
+                        if (!CANAntiqueAtlas.ServerSeenChunksByAtlases.TryGetValue(second, out var secondAtlasData))
+                        {
+                            return;
+                        }
+                        var firstClone = firstAtlasData.clone();
+                        var secondClone = secondAtlasData.clone();
+                        firstClone.Combine(secondClone);
+                        firstClone.key = newAtlasId;
+                        CANAntiqueAtlas.ServerSeenChunksByAtlases[newAtlasId] = firstClone;
+                        slot.Itemstack.Attributes.SetLong("atlasID", newAtlasId);
+                        slot.Itemstack.Attributes.RemoveAttribute("atlascombine");
+                        slot.Itemstack.Attributes.RemoveAttribute("atlascombinefirst");
+                        slot.Itemstack.Attributes.RemoveAttribute("atlascombinesecond");
+                        foreach(var layer in world.Api.ModLoader.GetModSystem<CANWorldMapManager>().MapLayers)
+                        {
+                            if(layer is CANWaypointMapLayer)
+                            {
+                                (layer as CANWaypointMapLayer).OnAtlasCombined(first, second, newAtlasId);
+                            }
+                        }
+                    }
                     long atlasId = slot?.Itemstack.Attributes.GetLong("atlasID", -1) ?? -1;
-                    CANAntiqueAtlas.sapi.ModLoader.GetModSystem<CANAntiqueAtlas>().pmls.AddAtlasToPlayer((inv as InventoryBasePlayer).Player as IServerPlayer, atlasId);
-                //if(inv.)
+                    CANAntiqueAtlas.sapi.ModLoader.GetModSystem<CANAntiqueAtlas>().pmls.AddAtlasToPlayer((inv as InventoryBasePlayer).Player as IServerPlayer, atlasId);                 
                 }
                 else
                 {
@@ -90,7 +125,6 @@ namespace CANAntiqueAtlas.src.item
                 if(atlasId < 0)
                 {
                     return;
-
                 }
                 var modsys = byEntity.Api.ModLoader.GetModSystem<CANWorldMapManager>();
                 modsys.OnHotKeyWorldMapDlg(null, atlasId);
@@ -99,30 +133,40 @@ namespace CANAntiqueAtlas.src.item
         }
         public override void OnConsumedByCrafting(ItemSlot[] allInputSlots, ItemSlot stackInSlot, GridRecipe gridRecipe, CraftingRecipeIngredient fromIngredient, IPlayer byPlayer, int quantity)
         {
-            base.OnConsumedByCrafting(allInputSlots, stackInSlot, gridRecipe, fromIngredient, byPlayer, quantity);
-            long atlasId = -1;
-            foreach (var it in allInputSlots)
-            {
-                if (it.Itemstack?.Item is CANItemAtlas && it.Itemstack.Attributes.HasAttribute("atlasID"))
-                {
-                    atlasId = it.Itemstack.Attributes.GetLong("atlasID", -1);
-                }
-            }
-            if (atlasId >= 0)
-            {
-                stackInSlot.Itemstack.Attributes.SetLong("atlasID", atlasId);
-            }
+            base.OnConsumedByCrafting(allInputSlots, stackInSlot, gridRecipe, fromIngredient, byPlayer, quantity);     
         }
         public override void OnCreatedByCrafting(ItemSlot[] allInputslots, ItemSlot outputSlot, GridRecipe byRecipe)
         {
             base.OnCreatedByCrafting(allInputslots, outputSlot, byRecipe);
             long atlasId = -1;
+            List<long> atlasIds = new List<long>();
+            bool emptyFound = false;
             foreach (var it in allInputslots)
             {
+                if(it.Itemstack != null && it.Itemstack.Item is CANItemEmptyAtlas)
+                {
+                    emptyFound = true;
+                    continue;
+                }
                 if (it.Itemstack?.Item is CANItemAtlas && it.Itemstack.Attributes.HasAttribute("atlasID"))
                 {
                     atlasId = it.Itemstack.Attributes.GetLong("atlasID", -1);
+                    if(atlasId >= 0)
+                    {
+                        atlasIds.Add(atlasId);
+                    }
                 }
+            }
+            if(!emptyFound)
+            {
+                if (atlasIds.Count > 1)
+                {
+                    outputSlot.Itemstack.Attributes.SetBool("atlascombine", true);
+                    outputSlot.Itemstack.Attributes.SetLong("atlascombinefirst", atlasIds[0]);
+                    outputSlot.Itemstack.Attributes.SetLong("atlascombinesecond", atlasIds[1]);
+                    return;
+                }
+                return;
             }
             if (atlasId >= 0)
             {
@@ -132,10 +176,18 @@ namespace CANAntiqueAtlas.src.item
         public override void GetHeldItemInfo(ItemSlot inSlot, StringBuilder dsc, IWorldAccessor world, bool withDebugInfo)
         {
             base.GetHeldItemInfo(inSlot, dsc, world, withDebugInfo);
-            if (!inSlot.Empty && inSlot.Itemstack.Attributes.HasAttribute("atlasID"))
-            {
-               var atlasId = inSlot.Itemstack.Attributes.GetLong("atlasID");
-               dsc.Append(Lang.Get("canantiqueatlas:atlas-number-info", atlasId));
+            if (!inSlot.Empty) {
+                if (inSlot.Itemstack.Attributes.HasAttribute("atlasID"))
+                {
+                    var atlasId = inSlot.Itemstack.Attributes.GetLong("atlasID");
+                    dsc.Append(Lang.Get("canantiqueatlas:atlas-number-info", atlasId)); 
+                }
+                if (inSlot.Itemstack.Attributes.HasAttribute("atlascombine"))
+                {
+                    var atlasIdFirst = inSlot.Itemstack.Attributes.GetLong("atlascombinefirst");
+                    var atlasIdSecond = inSlot.Itemstack.Attributes.GetLong("atlascombinesecond");
+                    dsc.Append(Lang.Get("canantiqueatlas:combine-of-atlases", atlasIdFirst, atlasIdSecond));
+                }
             }
         }
     }

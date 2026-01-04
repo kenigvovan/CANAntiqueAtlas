@@ -130,93 +130,45 @@ namespace CANAntiqueAtlas.src.gui.elements
             Context context = genContext(imageSurfaceFromAsset);
             pattern.Filter = Filter.Best;
             context.SetSource(pattern);
-            ElementRoundRectangle(context, Bounds);
             context.Fill();
             context.Rectangle(Bounds.drawX, Bounds.drawY, Bounds.OuterWidth, Bounds.OuterHeight);
             context.SetSourceSurface(imageSurfaceFromAsset, (int)Bounds.drawX, (int)Bounds.drawY);
             context.FillPreserve();
             generateTexture(imageSurfaceFromAsset, ref backgroundTexture);
             context.Save();
+            context.Dispose();
+            pattern.Dispose();
+            imageSurfaceFromAsset.Dispose();
 
 
             ImageSurface imageSurface = GuiElement.getImageSurfaceFromAsset(this.api, hideIcon, 255);
             SurfacePattern pattern1 = GuiElement.getPattern(this.api, hideIcon, true, 255, 0.1f);
+            Context context1 = genContext(imageSurface);
             pattern1.Filter = Filter.Best;
-            context.SetSource(pattern1);
-            context.Rectangle(this.Bounds.drawX, this.Bounds.drawY, Bounds.OuterWidth, Bounds.OuterHeight);
-            context.SetSourceSurface(imageSurface, (int)this.Bounds.drawX, (int)this.Bounds.drawY);
-            context.FillPreserve();
+            context1.SetSource(pattern1);
+            context1.Rectangle(this.Bounds.drawX, this.Bounds.drawY, Bounds.OuterWidth, Bounds.OuterHeight);
+            context1.SetSourceSurface(imageSurface, (int)this.Bounds.drawX, (int)this.Bounds.drawY);
+            context1.FillPreserve();
             generateTexture(imageSurface, ref hideTexture);
-            context.Restore();
+            context1.Restore();
+            context1.Dispose();
             pattern1.Dispose();
             imageSurface.Dispose();
 
-            imageSurface = GuiElement.getImageSurfaceFromAsset(this.api, showIcon, 255);
-            pattern1 = GuiElement.getPattern(this.api, showIcon, true, 255, 0.1f);
-            pattern1.Filter = Filter.Best;
-            context.SetSource(pattern1);
-            context.Rectangle(this.Bounds.drawX, this.Bounds.drawY, Bounds.OuterWidth, Bounds.OuterHeight);
-            context.SetSourceSurface(imageSurface, (int)this.Bounds.drawX, (int)this.Bounds.drawY);
-            context.FillPreserve();
-            generateTexture(imageSurface, ref showTexture);
-            context.Restore();
-            pattern1.Dispose();
-            imageSurface.Dispose();
-            /*imageSurfaceFromAsset = GuiElement.getImageSurfaceFromAsset(api, currentTexture);
-            pattern = GuiElement.getPattern(api, currentTexture, scale: 2);
-            pattern.Filter = Filter.Best;
-            context.SetSource(pattern);
-            context.SetSourceSurface(imageSurfaceFromAsset, (int)Bounds.drawX, (int)Bounds.drawY);
-            context.Fill();
-            context.FillPreserve();
-            generateTexture(imageSurfaceFromAsset, ref firstTexture);
-           */
-            context.Restore();
-            pattern.Dispose();
-            return;
-            /*Bounds.CalcWorldBounds();
-            normalText.Bounds.CalcWorldBounds();
-            ImageSurface imageSurface = new ImageSurface(Format.Argb32, (int)Bounds.OuterWidth, (int)Bounds.OuterHeight);
-            Context context = genContext(imageSurface);
-            //ComposeButton(context, imageSurface);
-            
-            generateTexture(imageSurface, ref normalTexture);
-            context.Clear();*/
-
-            /*if (buttonStyle != 0)
-            {
-                context.SetSourceRGBA(0.0, 0.0, 0.0, 0.4);
-                context.Rectangle(0.0, 0.0, Bounds.OuterWidth, Bounds.OuterHeight);
-                context.Fill();
-            }
-
-            pressedText.Bounds.fixedY += textOffsetY;
-            pressedText.ComposeElements(context, imageSurface);
-            pressedText.Bounds.fixedY -= textOffsetY;
-            generateTexture(imageSurface, ref activeTexture);
-            context.Clear();
-            if (buttonStyle != 0)
-            {
-                context.SetSourceRGBA(1.0, 1.0, 1.0, 0.1);
-                context.Rectangle(0.0, 0.0, Bounds.OuterWidth, Bounds.OuterHeight);
-                context.Fill();
-            }
-
-            generateTexture(imageSurface, ref hoverTexture);
-            context.Dispose();
-            imageSurface.Dispose();
-            imageSurface = new ImageSurface(Format.Argb32, 2, 2);
-            context = genContext(imageSurface);
-            if (buttonStyle != 0)
-            {
-                context.SetSourceRGBA(0.0, 0.0, 0.0, 0.4);
-                context.Rectangle(0.0, 0.0, 2.0, 2.0);
-                context.Fill();
-            }*/
-
-            /*generateTexture(imageSurface, ref disabledTexture);
-            context.Dispose();
-            imageSurface.Dispose();*/
+            ImageSurface imageSurface2 = GuiElement.getImageSurfaceFromAsset(this.api, showIcon, 255);
+            SurfacePattern pattern2 = GuiElement.getPattern(this.api, showIcon, true, 255, 0.1f);
+            Context context2 = genContext(imageSurface2);
+            pattern2.Filter = Filter.Best;
+            context2.SetSource(pattern2);
+            context2.Rectangle(this.Bounds.drawX, this.Bounds.drawY, Bounds.OuterWidth, Bounds.OuterHeight);
+            context2.SetSourceSurface(imageSurface2, (int)this.Bounds.drawX, (int)this.Bounds.drawY);
+            context2.FillPreserve();
+            generateTexture(imageSurface2, ref showTexture);
+            context2.Restore();
+            pattern2.Dispose();
+            imageSurface2.Dispose();
+            context2.Restore();
+            context2.Dispose();
         }
 
         private void ComposeButton(Context ctx, ImageSurface surface)

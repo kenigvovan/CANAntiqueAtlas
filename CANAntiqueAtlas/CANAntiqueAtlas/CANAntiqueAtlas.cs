@@ -100,6 +100,9 @@ namespace CANAntiqueAtlas
                .RequiresPrivilege(Privilege.controlserver)
                .BeginSub("shst")
                    .HandleWith(ShowStatsCommand)
+                .EndSub()
+                .BeginSub("clearall")
+                   .HandleWith(ClearAllAtlasDataCommand)
                 .EndSub();
             sapi.Event.ServerRunPhase(EnumServerRunPhase.ModsAndConfigReady, () =>
             {
@@ -170,14 +173,20 @@ namespace CANAntiqueAtlas
             tcr.StatusMessage = stringBuilder.ToString();
             return tcr;
         }
-        /*private void registerDefaultTextureSets(TextureSetMap map)
+        public static TextCommandResult ClearAllAtlasDataCommand(TextCommandCallingArgs args)
         {
-            map.register(TextureSet.TEMPERATEFOREST);
-            map.register(TextureSet.SNOW);
-            map.register(TextureSet.TEST);
-        }*/
+            TextCommandResult tcr = new TextCommandResult();
+            tcr.Status = EnumCommandStatus.Success;
+            IServerPlayer player = args.Caller.Player as IServerPlayer;
+
+            ServerSeenChunksByAtlases.Clear();
+            ServerMapInfoData = new();
+            //tcr.StatusMessage = stringBuilder.ToString();
+            return tcr;
+        }
         public override void StartClientSide(ICoreClientAPI api)
         {
+            //Environment.SetEnvironmentVariable("CAIRO_DEBUG_DISPOSE", "1");
             capi = api;
             loadConfig(api);
             clientChannel = api.Network.RegisterChannel("canantiqueatlas");
@@ -321,8 +330,15 @@ namespace CANAntiqueAtlas
         }
         private void LoadDefaultBiomeConditions(ICoreServerAPI api)
         {
+            bool forceDefault = false;
+            if(this.Mod.Info.NetworkVersion == "1.0.8" && !config.configMigrated)
+            {
+                forceDefault = true;
+                config.configMigrated = true;
+                api.StoreModConfig<Config>(config, this.Mod.Info.ModID + ".json");
+            }
             string folderPath = Path.Combine(GamePaths.ModConfig, "canantiqueatlas");
-            if (!Directory.Exists(folderPath) || !File.Exists(Path.Combine(folderPath, "default_bioms.json")))
+            if (forceDefault || !Directory.Exists(folderPath) || !File.Exists(Path.Combine(folderPath, "default_bioms.json")))
             {
                 Directory.CreateDirectory(folderPath);
                 Dictionary<AssetLocation, JToken> many = api.Assets.GetMany<JToken>(api.Server.Logger, "config/conditions/default_bioms");
@@ -380,7 +396,7 @@ namespace CANAntiqueAtlas
 
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
 
                     }

@@ -10,6 +10,7 @@ using ProtoBuf;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace CANAntiqueAtlas.src.core
 {
@@ -109,7 +110,6 @@ namespace CANAntiqueAtlas.src.core
       
         public AtlasSeenData clone()
         {
-            //TODO
             AtlasSeenData data = new AtlasSeenData(this.key);
             foreach (var kvp in tileGroups)
             {
@@ -117,7 +117,36 @@ namespace CANAntiqueAtlas.src.core
             }
             return data;
         }
-
+        public void Combine(AtlasSeenData data)
+        {
+            foreach(var (rg_coords, tg) in data.tileGroups)
+            {
+                if(this.tileGroups.TryGetValue(rg_coords, out var currTG))
+                {
+                    for(int i = 0; i < currTG.tiles.Count(); i++)
+                    {
+                        if (!currTG.tiles[i] && tg.tiles[i])
+                        {
+                            currTG.tiles[i] = tg.tiles[i];
+                        }
+                    }
+                }
+                else
+                {
+                    currTG = new TileGroupSeen();
+                    currTG.tiles = new bool[16 * 16];
+                    currTG.scope = tg.scope.Clone();
+                    this.tileGroups.TryAdd(rg_coords.Copy(), currTG);
+                    for (int i = 0; i < currTG.tiles.Count(); i++)
+                    {
+                        if (tg.tiles[i])
+                        {
+                            currTG.tiles[i] = tg.tiles[i];
+                        }
+                    }
+                }
+            }
+        }
 
         public override bool Equals(object obj)
         {

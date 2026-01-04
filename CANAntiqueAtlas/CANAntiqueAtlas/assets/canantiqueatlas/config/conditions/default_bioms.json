@@ -4,9 +4,9 @@
 
         "BiomeName": "TemperateForest",
 
-        "MaxHeight": 120,
+        "MaxHeightNormal": 0.47,
 
-        "MinHeight": 105,
+        "MinHeightNormal": 0.41,
 
         "BlockCodeWildCards": [ "leaves-grown*", "forestfloor*" ],
         "Priority": 1.3,
@@ -30,9 +30,9 @@
 
         "BiomeName": "SparseForest",
 
-        "MaxHeight": 139,
+        "MaxHeightNormal": 0.54,
 
-        "MinHeight": 105,
+        "MinHeightNormal": 0.41,
 
         "BlockCodeWildCards": [ "leaves-grown*", "leavesbranchy-grown*", "fern-*", "forestfloor*" ],
         "Priority": 1.2,
@@ -56,9 +56,9 @@
 
         "BiomeName": "Desert",
 
-        "MaxHeight": 120,
+        "MaxHeightNormal": 0.47,
 
-        "MinHeight": 105,
+        "MinHeightNormal": 0.41,
 
         "BlockCodeWildCards": [ "sand-*", "gravel-*" ],
         "Priority": 1.1,
@@ -80,8 +80,8 @@
     {
         "Name": "plains",
         "BiomeName": "Plains",
-        "MaxHeight": 125,
-        "MinHeight": 106,
+        "MaxHeightNormal": 0.488,
+        "MinHeightNormal": 0.414,
         "BlockCodeWildCards": [],
         "Priority": 1,
         "MaxTemperature": 25,
@@ -98,8 +98,8 @@
     {
         "Name": "hills",
         "BiomeName": "Hills",
-        "MaxHeight": 139,
-        "MinHeight": 125,
+        "MaxHeightNormal": 0.54,
+        "MinHeightNormal": 0.488,
         "BlockCodeWildCards": [],
         "Priority": 1,
         "MaxTemperature": 25,
@@ -112,19 +112,19 @@
         "MinForestDensity": 0,
         "MaxShrubDensity": 1,
         "MinShrubDensity": 0,
-        "MinHeightRange": 7,
-        "MaxHeightRange": 15
+        "MinHeightNormalRange": 7,
+        "MaxHeightNormalRange": 15
     },
     {
         "Name": "water",
 
         "BiomeName": "Water",
 
-        "MaxHeight": 120,
+        "MaxHeightNormal": 0.46,
 
-        "MinHeight": 105,
+        "MinHeightNormal": 0.41,
 
-        "BlockCodeWildCards": [ "water-still-*" ],
+        "BlockCodeWildCards": [ "water-*", "saltwater-*" ],
         "Priority": 1.1,
 
         "MaxTemperature": 55,
@@ -146,9 +146,9 @@
 
         "BiomeName": "Plateau",
 
-        "MaxHeight": 180,
+        "MaxHeightNormal": 0.7,
 
-        "MinHeight": 140,
+        "MinHeightNormal": 0.54,
 
         "BlockCodeWildCards": [],
         "Priority": 1,
@@ -172,9 +172,9 @@
 
         "BiomeName": "MountainsSnowCaps",
 
-        "MaxHeight": 250,
+        "MaxHeightNormal": 0.97,
 
-        "MinHeight": 160,
+        "MinHeightNormal": 0.625,
 
         "BlockCodeWildCards": [ "glacierice" ],
         "Priority": 4,
@@ -198,9 +198,9 @@
 
         "BiomeName": "Mountains",
 
-        "MaxHeight": 250,
+        "MaxHeightNormal": 0.97,
 
-        "MinHeight": 140,
+        "MinHeightNormal": 0.546,
         "MaxTemperature": 55,
 
         "MinTemperature": -35,
@@ -222,9 +222,9 @@
 
         "BiomeName": "HotSpring",
 
-        "MaxHeight": 180,
+        "MaxHeightNormal": 0.703,
 
-        "MinHeight": 80,
+        "MinHeightNormal": 0.312,
 
         "BlockCodeWildCards": [ "sludgygravel" ],
         "Priority": 4,
@@ -248,9 +248,9 @@
 
         "BiomeName": "Swamp",
 
-        "MaxHeight": 134,
+        "MaxHeightNormal": 0.523,
 
-        "MinHeight": 105,
+        "MinHeightNormal": 0.41,
 
         "BlockCodeWildCards": [
             "tallplant-coopersreed-*",
@@ -280,9 +280,9 @@
 
         "BiomeName": "Redwood",
 
-        "MaxHeight": 190,
+        "MaxHeightNormal": 0.742,
 
-        "MinHeight": 105,
+        "MinHeightNormal": 0.41,
 
         "BlockCodeWildCards": [ "leaves-grown*-redwood", "leavesbranchy-grown*-redwood" ],
         "Priority": 1.2,
@@ -306,9 +306,9 @@
 
         "BiomeName": "Jungle",
 
-        "MaxHeight": 190,
+        "MaxHeightNormal": 0.742,
 
-        "MinHeight": 105,
+        "MinHeightNormal": 0.41,
 
         "BlockCodeWildCards": [
             "leaves-grown*-baldcypress",

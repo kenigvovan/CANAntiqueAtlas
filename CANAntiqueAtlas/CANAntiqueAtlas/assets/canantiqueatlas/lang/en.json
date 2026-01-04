@@ -1,5 +1,6 @@
 {
     "item-canatlas": "Atlas",
     "item-canemptyatlas": "Empty atlas",
-    "atlas-number-info": "#{0}"
+    "atlas-number-info": "#{0}",
+    "combine-of-atlases": "Combine atlas #{0} and #{1}"
 }

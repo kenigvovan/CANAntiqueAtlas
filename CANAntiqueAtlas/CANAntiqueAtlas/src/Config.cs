@@ -22,5 +22,6 @@ namespace CANAntiqueAtlas.src
         public bool allowMap = false;
         public bool inputDefaultTextureSets = true;
         public bool debugMode = false;
+        public bool configMigrated = false;
     }
 }
