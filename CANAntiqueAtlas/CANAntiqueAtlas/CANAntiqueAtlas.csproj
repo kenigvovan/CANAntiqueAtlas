@@ -63,4 +63,8 @@
   <None Include="src\gui\elements\CANGuiElementTwoStateImageButton.cs" />
 </ItemGroup>
 
+<ItemGroup>
+  <Folder Include="assets\canantiqueatlas\patches\" />
+</ItemGroup>
+
 </Project>

@@ -96,29 +96,31 @@ namespace CANAntiqueAtlas.src.gui.Map.EntityLayer
             }
 
 
-
-            foreach (IPlayer player in capi.World.AllOnlinePlayers)
+            if (CANAntiqueAtlas.config.showPlayerMarker)
             {
-
-                if (MapComps.TryGetValue(player, out CANEntityMapComponent cmp))
+                foreach (IPlayer player in capi.World.AllOnlinePlayers)
                 {
-                    cmp?.Dispose();
-                    MapComps.Remove(player);
+
+                    if (MapComps.TryGetValue(player, out CANEntityMapComponent cmp))
+                    {
+                        cmp?.Dispose();
+                        MapComps.Remove(player);
+                    }
+
+
+                    if (player.Entity == null)
+                    {
+                        capi.World.Logger.Warning("Can't add player {0} to world map, missing entity :<", player.PlayerUID);
+                        continue;
+                    }
+
+                    if (capi.World.Config.GetBool("mapHideOtherPlayers", false) && player.PlayerUID != capi.World.Player.PlayerUID) continue;
+
+
+                    cmp = new CANEntityMapComponent(capi, player == capi.World.Player ? ownTexture : otherTexture, player.Entity);
+
+                    MapComps[player] = cmp;
                 }
-
-
-                if (player.Entity == null)
-                {
-                    capi.World.Logger.Warning("Can't add player {0} to world map, missing entity :<", player.PlayerUID);
-                    continue;
-                }
-
-                if (capi.World.Config.GetBool("mapHideOtherPlayers", false) && player.PlayerUID != capi.World.Player.PlayerUID) continue;
-
-
-                cmp = new CANEntityMapComponent(capi, player == capi.World.Player ? ownTexture : otherTexture, player.Entity);
-
-                MapComps[player] = cmp;
             }
         }
 

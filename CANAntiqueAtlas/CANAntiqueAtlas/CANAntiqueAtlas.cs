@@ -84,6 +84,7 @@ namespace CANAntiqueAtlas
             serverChannel.RegisterMessageType(typeof(PlayerJoinedMapDataSeen));
             serverChannel.RegisterMessageType(typeof(DropedAtlasIdPacket));
             serverChannel.RegisterMessageType(typeof(SyncBiomesPacket));
+            serverChannel.RegisterMessageType(typeof(ConfigUpdateValuesPacket));
             serverChannel.SetMessageHandler<DropedAtlasIdPacket>((player, packet) =>
             {
                 pmls.ResyncPlayerAtlases(player);
@@ -92,7 +93,7 @@ namespace CANAntiqueAtlas
             pmls = new PlayerMovementsListnerServer();
             sapi.Event.RegisterGameTickListener(pmls.CheckPlayerMove, 2000);
             sapi.Event.PlayerNowPlaying += pmls.OnPlayerNowPlaying;
-
+            api.Event.PlayerJoin += SendUpdatedConfigValues;
             LoadDefaultBiomeConditions(api);
             LoadFinalSelectionPriority(api);
             api.ChatCommands.Create("canatlas")
@@ -152,6 +153,15 @@ namespace CANAntiqueAtlas
             }
             sapi.Event.PlayerNowPlaying += SendBiomeMapping;
         }
+        public static void SendUpdatedConfigValues(IServerPlayer player)
+        {
+            serverChannel.SendPacket(
+                   new ConfigUpdateValuesPacket()
+                   {
+                       showPlayerMarker = config.showPlayerMarker,
+                   }
+                   , player);
+        }
         public void SendBiomeMapping(IServerPlayer byPlayer)
         {
             serverChannel.SendPacket(new SyncBiomesPacket
@@ -196,6 +206,7 @@ namespace CANAntiqueAtlas
             clientChannel.RegisterMessageType(typeof(PlayerJoinedMapDataSeen));
             clientChannel.RegisterMessageType(typeof(DropedAtlasIdPacket));
             clientChannel.RegisterMessageType(typeof(SyncBiomesPacket));
+            clientChannel.RegisterMessageType(typeof(ConfigUpdateValuesPacket));
             clientChannel.SetMessageHandler<TileGroupsPacket>((packet) =>
             {
                 AtlasData atlasData = CANAntiqueAtlas.atlasData.GetAtlasData(packet.atlasID, capi.World);
@@ -295,6 +306,11 @@ namespace CANAntiqueAtlas
                 biomeTextureMap.setTexture((int)BiomeType.Redwood, TextureSet.MEGA_SPRUCE);
                 biomeTextureMap.setTexture((int)BiomeType.Jungle, TextureSet.JUNGLE);*/
             });
+            clientChannel.SetMessageHandler<ConfigUpdateValuesPacket>((packet) =>
+            {
+                config.showPlayerMarker = packet.showPlayerMarker;
+
+            });
             textureSetMap = TextureSetMap.instance();
             //registerDefaultTextureSets(textureSetMap);
             biomeTextureMap = BiomeTextureMap.instance();
@@ -311,8 +327,11 @@ namespace CANAntiqueAtlas
             {
                 config = new Config();
             }
-               
-            api.StoreModConfig<Config>(config, this.Mod.Info.ModID + ".json");            
+            api.World.Config.SetBool("EnableAtlasCopy", config.EnableAtlasCopy);
+            if (api.Side == EnumAppSide.Server)
+            {
+                api.StoreModConfig<Config>(config, this.Mod.Info.ModID + ".json");
+            }       
             return;          
         }
         private int GetBiomeId(BiomeConditions cond)

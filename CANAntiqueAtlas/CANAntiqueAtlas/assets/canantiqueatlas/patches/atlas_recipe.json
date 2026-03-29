@@ -1,0 +1,13 @@
+[
+    {
+        "file": "canantiqueatlas:recipes/grid/copyatlas.json",
+        "op": "add",
+        "path": "/0/enabled",
+        "value": false,
+        "condition": {
+            "when": "EnableAtlasCopy",
+            "isValue": "false"
+        },
+        "side": "server"
+    }
+]
