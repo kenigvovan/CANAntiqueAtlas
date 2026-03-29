@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Security.Claims;
 using System.Text;
@@ -104,6 +105,15 @@ namespace CANAntiqueAtlas
                 .EndSub()
                 .BeginSub("clearall")
                    .HandleWith(ClearAllAtlasDataCommand)
+                .EndSub()
+                .BeginSub("setbiome")
+                   .WithDescription("Set biome for chunks around current position. Usage: /canatlas setbiome <biomeId|biomeName> [radius]")
+                   .WithArgs(api.ChatCommands.Parsers.Word("biome"), api.ChatCommands.Parsers.OptionalInt("radius", 1))
+                   .HandleWith(SetChunkBiomeCommand)
+                .EndSub()
+                .BeginSub("biomes")
+                   .WithDescription("List all available biomes and their IDs")
+                   .HandleWith(ListBiomesCommand)
                 .EndSub();
             sapi.Event.ServerRunPhase(EnumServerRunPhase.ModsAndConfigReady, () =>
             {
@@ -193,6 +203,77 @@ namespace CANAntiqueAtlas
             ServerMapInfoData = new();
             //tcr.StatusMessage = stringBuilder.ToString();
             return tcr;
+        }
+        public static TextCommandResult SetChunkBiomeCommand(TextCommandCallingArgs args)
+        {
+            IServerPlayer player = args.Caller.Player as IServerPlayer;
+            string biomeArg = (string)args.Parsers[0].GetValue();
+
+            // Resolve biome ID from name or numeric string
+            int biomeId;
+            if (!int.TryParse(biomeArg, out biomeId))
+            {
+                var match = BiomesMapping.FirstOrDefault(kv => string.Equals(kv.Key, biomeArg, StringComparison.OrdinalIgnoreCase));
+                biomeId = match.Value;
+                if (match.Key == null)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("Unknown biome name: " + biomeArg);
+                    sb.AppendLine("Available biomes:");
+                    foreach (var kv in BiomesMapping)
+                    {
+                        sb.AppendLine($"  {kv.Key} (id: {kv.Value})");
+                    }
+                    return TextCommandResult.Error(sb.ToString());
+                }
+            }
+
+            int radius = (int)args.Parsers[1].GetValue();
+            int centerX = (int)player.Entity.ServerPos.X >> 4;
+            int centerZ = (int)player.Entity.ServerPos.Z >> 4;
+
+            var updatedTiles = new Dictionary<FastVec2i, Tile>();
+            lock (ServerMapInfoData)
+            {
+                for (int dx = -radius; dx <= radius; dx++)
+                {
+                    for (int dz = -radius; dz <= radius; dz++)
+                    {
+                        if (dx * dx + dz * dz > radius * radius) continue;
+                        int x = centerX + dx;
+                        int z = centerZ + dz;
+                        Tile newTile = new Tile(biomeId);
+                        ServerMapInfoData.SetTile(0, x, z, newTile);
+                        updatedTiles[new FastVec2i(x, z)] = newTile;
+                    }
+                }
+            }
+
+            // Send updated tiles to all online players
+            foreach (IPlayer onlinePlayer in sapi.World.AllOnlinePlayers)
+            {
+                serverChannel.SendPacket(new PlayerJoinedMapData()
+                {
+                    ServerMapInfoData = updatedTiles
+                }, onlinePlayer as IServerPlayer);
+            }
+
+            return TextCommandResult.Success($"Set {updatedTiles.Count} chunks around ({centerX}, {centerZ}) with radius {radius} to biome {biomeId}" +
+                (BiomesMapping.ContainsValue(biomeId) ? "" : " (warning: unknown biome ID)"));
+        }
+        public static TextCommandResult ListBiomesCommand(TextCommandCallingArgs args)
+        {
+            if (BiomesMapping.Count == 0)
+            {
+                return TextCommandResult.Success("No biomes registered.");
+            }
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Available biomes:");
+            foreach (var kv in BiomesMapping.OrderBy(kv => kv.Value))
+            {
+                sb.AppendLine($"  {kv.Value}: {kv.Key}");
+            }
+            return TextCommandResult.Success(sb.ToString());
         }
         public override void StartClientSide(ICoreClientAPI api)
         {

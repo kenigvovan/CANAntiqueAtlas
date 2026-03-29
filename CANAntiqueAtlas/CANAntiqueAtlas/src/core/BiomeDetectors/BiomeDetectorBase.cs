@@ -97,21 +97,8 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                 int maxGroupHeight = groups.Last().Range;
                 mainHeightRange = maxGroupHeight - minGroupHeight;
             }
-            Dictionary<string, int> amountBlocks = new();
-            foreach(var it in blockArray)
-            {
-                if(amountBlocks.TryGetValue(it.Code.Path, out var v))
-                {
-                    amountBlocks[it.Code.Path] = ++v;
-                }
-                else
-                {
-                    amountBlocks[it.Code.Path] = 1;
-                }
-            }
-
             for(int i = 0; i < 16; i++)
-                for (int j = 0; j < 16; j++) 
+                for (int j = 0; j < 16; j++)
                 {
                     BiomeConditions bestSelection = null;
                     //Console.WriteLine(blockArray[i * 16 + j].Code.Path);
@@ -139,6 +126,18 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                 }
             if (CANAntiqueAtlas.config.debugMode)
             {
+                Dictionary<string, int> amountBlocks = new();
+                foreach(var it in blockArray)
+                {
+                    if(amountBlocks.TryGetValue(it.Code.Path, out var v))
+                    {
+                        amountBlocks[it.Code.Path] = ++v;
+                    }
+                    else
+                    {
+                        amountBlocks[it.Code.Path] = 1;
+                    }
+                }
                 foreach (var it in amountBlocks)
                 {
                     Console.WriteLine(string.Format("{0}: {1}", it.Key, it.Value));

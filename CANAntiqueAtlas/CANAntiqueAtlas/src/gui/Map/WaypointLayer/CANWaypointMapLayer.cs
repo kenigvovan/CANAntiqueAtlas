@@ -76,7 +76,7 @@ namespace CANAntiqueAtlas.src.gui.Map.WaypointLayer
         /// <summary>
         /// List
         /// </summary>
-        public OrderedDictionary<string, CreateIconTextureDelegate> WaypointIcons { get; set; } = new();
+        public System.Collections.Generic.OrderedDictionary<string, CreateIconTextureDelegate> WaypointIcons { get; set; } = new();
 
         static string[] hexcolors = new string[] {
             "#F9D0DC", "#F179AF", "#F15A4A", "#ED272A", "#A30A35", "#FFDE98", "#EFFD5F", "#F6EA5E", "#FDBB3A", "#C8772E", "#F47832",
