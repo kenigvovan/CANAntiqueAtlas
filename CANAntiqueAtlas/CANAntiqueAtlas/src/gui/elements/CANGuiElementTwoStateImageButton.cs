@@ -126,7 +126,7 @@ namespace CANAntiqueAtlas.src.gui.elements
         public override void ComposeElements(Context ctxStatic, ImageSurface surfaceStatic)
         {
             ImageSurface imageSurfaceFromAsset = GuiElement.getImageSurfaceFromAsset(api, backgroundLayer);
-            SurfacePattern pattern = GuiElement.getPattern(api, backgroundLayer, scale: 0.1f);
+            SurfacePattern pattern = new SurfacePattern(imageSurfaceFromAsset);
             Context context = genContext(imageSurfaceFromAsset);
             pattern.Filter = Filter.Best;
             context.SetSource(pattern);
@@ -135,14 +135,13 @@ namespace CANAntiqueAtlas.src.gui.elements
             context.SetSourceSurface(imageSurfaceFromAsset, (int)Bounds.drawX, (int)Bounds.drawY);
             context.FillPreserve();
             generateTexture(imageSurfaceFromAsset, ref backgroundTexture);
-            context.Save();
             context.Dispose();
             pattern.Dispose();
             imageSurfaceFromAsset.Dispose();
 
 
             ImageSurface imageSurface = GuiElement.getImageSurfaceFromAsset(this.api, hideIcon, 255);
-            SurfacePattern pattern1 = GuiElement.getPattern(this.api, hideIcon, true, 255, 0.1f);
+            SurfacePattern pattern1 = new SurfacePattern(imageSurface);
             Context context1 = genContext(imageSurface);
             pattern1.Filter = Filter.Best;
             context1.SetSource(pattern1);
@@ -150,13 +149,12 @@ namespace CANAntiqueAtlas.src.gui.elements
             context1.SetSourceSurface(imageSurface, (int)this.Bounds.drawX, (int)this.Bounds.drawY);
             context1.FillPreserve();
             generateTexture(imageSurface, ref hideTexture);
-            context1.Restore();
             context1.Dispose();
             pattern1.Dispose();
             imageSurface.Dispose();
 
             ImageSurface imageSurface2 = GuiElement.getImageSurfaceFromAsset(this.api, showIcon, 255);
-            SurfacePattern pattern2 = GuiElement.getPattern(this.api, showIcon, true, 255, 0.1f);
+            SurfacePattern pattern2 = new SurfacePattern(imageSurface2);
             Context context2 = genContext(imageSurface2);
             pattern2.Filter = Filter.Best;
             context2.SetSource(pattern2);
@@ -164,10 +162,8 @@ namespace CANAntiqueAtlas.src.gui.elements
             context2.SetSourceSurface(imageSurface2, (int)this.Bounds.drawX, (int)this.Bounds.drawY);
             context2.FillPreserve();
             generateTexture(imageSurface2, ref showTexture);
-            context2.Restore();
             pattern2.Dispose();
             imageSurface2.Dispose();
-            context2.Restore();
             context2.Dispose();
         }
 
@@ -351,6 +347,9 @@ namespace CANAntiqueAtlas.src.gui.elements
             activeTexture?.Dispose();
             disabledTexture?.Dispose();
             normalTexture?.Dispose();
+            hideTexture?.Dispose();
+            showTexture?.Dispose();
+            backgroundTexture?.Dispose();
         }
     }
 }

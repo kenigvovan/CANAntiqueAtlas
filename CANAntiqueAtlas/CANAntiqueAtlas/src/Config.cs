@@ -23,5 +23,7 @@ namespace CANAntiqueAtlas.src
         public bool inputDefaultTextureSets = true;
         public bool debugMode = false;
         public bool configMigrated = false;
+        public bool showPlayerMarker = true;
+        public bool EnableAtlasCopy = true;
     }
 }

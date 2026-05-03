@@ -127,12 +127,13 @@ namespace CANAntiqueAtlas.src.core
 
         public Tile RemoveTile(int x, int y)
         {
-            //TODO
-            // since scope is not modified, I assume this was never really used
-            // Tile oldTile = tileGroups.remove(getKey().set(x, y));
-            // if (oldTile != null) parent.markDirty();
-            // return oldTile;
-            return GetTile(x, y);
+            FastVec2i groupPos = new FastVec2i((int)Math.Floor(x / (float)TileGroup.CHUNK_STEP),
+                    (int)Math.Floor(y / (float)TileGroup.CHUNK_STEP));
+            if (tileGroups.TryGetValue(groupPos, out TileGroup tg))
+            {
+                return tg.RemoveTile(x, y);
+            }
+            return null;
         }
 
         public Tile GetTile(int x, int y)

@@ -1,0 +1,6 @@
+{
+    "item-canatlas": "Атлас с картой",
+    "item-canemptyatlas": "Пустой атлас",
+    "atlas-number-info": "#{0}",
+    "combine-of-atlases": "Объединение атласов #{0} и #{1}"
+}

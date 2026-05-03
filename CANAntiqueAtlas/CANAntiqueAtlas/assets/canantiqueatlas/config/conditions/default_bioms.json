@@ -124,7 +124,7 @@
 
         "MinHeightNormal": 0.41,
 
-        "BlockCodeWildCards": [ "water-*", "saltwater-*" ],
+        "BlockCodeWildCards": [ "water-still-*", "saltwater-still-*", "lakeice*" ],
         "Priority": 1.1,
 
         "MaxTemperature": 55,
@@ -254,9 +254,7 @@
 
         "BlockCodeWildCards": [
             "tallplant-coopersreed-*",
-            "water-still-*",
             "aquatic-watercrowfoot-*",
-            "water-still-*",
             "tallplant-papyrus-*"
         ],
         "Priority": 1.1,
@@ -316,7 +314,8 @@
             "leaves-grown*-kapok",
             "leavesbranchy-grown*-kapok",
             "leaves-grown*-purpleheart",
-            "leavesbranchy-grown*-purpleheart"
+            "leavesbranchy-grown*-purpleheart",
+            "bamboo-grown-*"
         ],
         "Priority": 1.2,
 

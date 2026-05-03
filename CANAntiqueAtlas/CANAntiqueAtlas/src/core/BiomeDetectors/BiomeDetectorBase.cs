@@ -59,7 +59,15 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                     
                     blockCoords.Y = ch;
                     var tmpBlock = CANAntiqueAtlas.sapi.World.BlockAccessor.GetBlock(blockCoords);
-                    
+
+                    // Water blocks are rain-permeable, so rain height points to the solid floor
+                    // under the water. Check one block above to detect water bodies.
+                    var blockAbove = CANAntiqueAtlas.sapi.World.BlockAccessor.GetBlock(blockCoords.UpCopy());
+                    if (blockAbove.Code.Path.StartsWith("water") || blockAbove.Code.Path.StartsWith("saltwater"))
+                    {
+                        tmpBlock = blockAbove;
+                    }
+
                     Block block = tmpBlock;
                     int i = 0;
                     var tmpCoords = blockCoords.Copy();
@@ -70,10 +78,7 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                             tmpCoords.Y -= 1;
                             tmpBlock = CANAntiqueAtlas.sapi.World.BlockAccessor.GetBlock(tmpCoords);
                             i++;
-                            if (tmpBlock.Code.Path.Contains("air"))
-                            {
-                                block = tmpBlock;
-                            }
+                            block = tmpBlock;
                         }
 
                     }
@@ -97,21 +102,8 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                 int maxGroupHeight = groups.Last().Range;
                 mainHeightRange = maxGroupHeight - minGroupHeight;
             }
-            Dictionary<string, int> amountBlocks = new();
-            foreach(var it in blockArray)
-            {
-                if(amountBlocks.TryGetValue(it.Code.Path, out var v))
-                {
-                    amountBlocks[it.Code.Path] = ++v;
-                }
-                else
-                {
-                    amountBlocks[it.Code.Path] = 1;
-                }
-            }
-
             for(int i = 0; i < 16; i++)
-                for (int j = 0; j < 16; j++) 
+                for (int j = 0; j < 16; j++)
                 {
                     BiomeConditions bestSelection = null;
                     //Console.WriteLine(blockArray[i * 16 + j].Code.Path);
@@ -139,6 +131,18 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                 }
             if (CANAntiqueAtlas.config.debugMode)
             {
+                Dictionary<string, int> amountBlocks = new();
+                foreach(var it in blockArray)
+                {
+                    if(amountBlocks.TryGetValue(it.Code.Path, out var v))
+                    {
+                        amountBlocks[it.Code.Path] = ++v;
+                    }
+                    else
+                    {
+                        amountBlocks[it.Code.Path] = 1;
+                    }
+                }
                 foreach (var it in amountBlocks)
                 {
                     Console.WriteLine(string.Format("{0}: {1}", it.Key, it.Value));

@@ -50,9 +50,16 @@ namespace CANAntiqueAtlas.src.core
 
         public Tile RemoveTile(int x, int y)
         {
-            Tile tmp = GetTile(x, y);
-            SetTile(x, y, null);
-            return tmp;
+            if (x >= scope.minX && y >= scope.minY && x <= scope.maxX && y <= scope.maxY)
+            {
+                int rx = x - scope.minX;
+                int ry = y - scope.minY;
+                long key = (uint)((uint)rx + ((long)ry << 16));
+                tiles.TryGetValue(key, out Tile tmp);
+                tiles.Remove(key);
+                return tmp;
+            }
+            return null;
         }
 
         public Tile GetTile(int x, int y)
