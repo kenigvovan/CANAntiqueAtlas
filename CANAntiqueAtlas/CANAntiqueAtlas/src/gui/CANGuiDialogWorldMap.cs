@@ -17,13 +17,8 @@ namespace CANAntiqueAtlas.src.gui
     public class CANGuiDialogWorldMap: GuiDialogGeneric
     {
         public long atlasId;
-        public override bool PrefersUngrabbedMouse
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool PrefersUngrabbedMouse => true;
+        public override bool DisableMouseGrab => true;
         public override double DrawOrder
         {
             get
@@ -435,6 +430,7 @@ namespace CANAntiqueAtlas.src.gui
         }
         public override bool ShouldReceiveKeyboardEvents()
         {
+            return true;
             return base.ShouldReceiveKeyboardEvents();
         }
         private EnumDialogArea GetMinimapPosition(out double offsetX, out double offsetY)

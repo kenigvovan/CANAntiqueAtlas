@@ -1,36 +1,28 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.IO;
-using System.Linq;
-using System.Numerics;
-using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
-using CANAntiqueAtlas.src;
+﻿using CANAntiqueAtlas.src;
 using CANAntiqueAtlas.src.core;
 using CANAntiqueAtlas.src.core.BiomeDetectors;
 using CANAntiqueAtlas.src.gui;
 using CANAntiqueAtlas.src.gui.Map.TileLayer;
 using CANAntiqueAtlas.src.gui.render;
-using CANAntiqueAtlas.src.harmony;
 using CANAntiqueAtlas.src.item;
 using CANAntiqueAtlas.src.network.client;
 using CANAntiqueAtlas.src.network.server;
 using CANAntiqueAtlas.src.playerMovement;
 using HarmonyLib;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.CommandAbbr;
 using Vintagestory.API.Config;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
-
-using Vintagestory.GameContent;
-using static CANAntiqueAtlas.src.core.BiomeDetectors.IBiomeDetector;
 
 namespace CANAntiqueAtlas
 {
@@ -59,8 +51,13 @@ namespace CANAntiqueAtlas
         public static BiomeTextureMap biomeTextureMap;
         public PlayerMovementsListnerServer pmls;
         public static Dictionary<string, int> BiomesMapping = new();
+        private BiomeDetectorLandform landformDetector;
         public override void Start(ICoreAPI api)
         {
+            // Make Cairo print allocation stacktraces for leaked surfaces.
+            // Must be set before Cairo native lib is touched; harmless if already loaded.
+            Environment.SetEnvironmentVariable("CAIRO_DEBUG_DISPOSE", "1");
+
             if (api.Side == EnumAppSide.Client)
             {
                 capi = api as ICoreClientAPI;
@@ -90,13 +87,24 @@ namespace CANAntiqueAtlas
             {
                 pmls.ResyncPlayerAtlases(player);
             });
-            biomeDetector = new BiomeDetectorBase();
+            var fallbackDetector = new BiomeDetectorBase();
+            landformDetector = new BiomeDetectorLandform(sapi, fallbackDetector);
+            biomeDetector = landformDetector;
             pmls = new PlayerMovementsListnerServer();
             sapi.Event.RegisterGameTickListener(pmls.CheckPlayerMove, 2000);
             sapi.Event.PlayerNowPlaying += pmls.OnPlayerNowPlaying;
             api.Event.PlayerJoin += SendUpdatedConfigValues;
             LoadDefaultBiomeConditions(api);
             LoadFinalSelectionPriority(api);
+            // Initialize landform mapping after worldgen is ready (NoiseLandforms populated)
+            sapi.Event.ServerRunPhase(EnumServerRunPhase.RunGame, () =>
+            {
+                var landformConfig = LoadLandformBiomeConfig(api);
+                if (landformConfig != null)
+                {
+                    landformDetector.InitializeLandformMapping(landformConfig);
+                }
+            });
             api.ChatCommands.Create("canatlas")
                .RequiresPlayer()
                .RequiresPrivilege(Privilege.controlserver)
@@ -114,6 +122,15 @@ namespace CANAntiqueAtlas
                 .BeginSub("biomes")
                    .WithDescription("List all available biomes and their IDs")
                    .HandleWith(ListBiomesCommand)
+                .EndSub()
+                .BeginSub("landform")
+                   .WithDescription("Show landform and mapped biome at current position")
+                   .HandleWith(LandformInfoCommand)
+                .EndSub()
+                .BeginSub("resettile")
+                   .WithDescription("Remove tile data at current position so it regenerates on next visit. Usage: /canatlas resettile [radius]")
+                   .WithArgs(api.ChatCommands.Parsers.OptionalInt("radius", 0))
+                   .HandleWith(ResetTileCommand)
                 .EndSub();
             sapi.Event.ServerRunPhase(EnumServerRunPhase.ModsAndConfigReady, () =>
             {
@@ -189,7 +206,7 @@ namespace CANAntiqueAtlas
             StringBuilder stringBuilder = new StringBuilder();
            
             stringBuilder.AppendLine(string.Format("temp: {0}, rain: {1}, fert: {2}, forest: {3}, shrub: {4}", cond.Temperature, cond.Rainfall, cond.Fertility, cond.ForestDensity, cond.ShrubDensity));
-            Console.WriteLine(stringBuilder.ToString());
+
             tcr.StatusMessage = stringBuilder.ToString();
             return tcr;
         }
@@ -275,6 +292,69 @@ namespace CANAntiqueAtlas
             }
             return TextCommandResult.Success(sb.ToString());
         }
+        private TextCommandResult LandformInfoCommand(TextCommandCallingArgs args)
+        {
+            var player = args.Caller.Player;
+            if (player?.Entity == null)
+                return TextCommandResult.Error("Player not found.");
+
+            var pos = player.Entity.Pos.AsBlockPos;
+
+            if (landformDetector == null)
+                return TextCommandResult.Error("Landform detector not initialized.");
+
+            string info = landformDetector.GetLandformInfoAtPos(pos);
+            return TextCommandResult.Success(info);
+        }
+
+        private TextCommandResult ResetTileCommand(TextCommandCallingArgs args)
+        {
+            var player = args.Caller.Player;
+            if (player?.Entity == null)
+                return TextCommandResult.Error("Player not found.");
+
+            int radius = (int)args.Parsers[0].GetValue();
+            var pos = player.Entity.Pos.AsBlockPos;
+            int centerTileX = pos.X >> 4;
+            int centerTileZ = pos.Z >> 4;
+
+            var mapData = ServerMapInfoData.GetDimensionData();
+            int count = 0;
+
+            for (int dx = -radius; dx <= radius; dx++)
+            {
+                for (int dz = -radius; dz <= radius; dz++)
+                {
+                    int tileX = centerTileX + dx;
+                    int tileZ = centerTileZ + dz;
+
+                    // Remove old tile
+                    mapData.RemoveTile(tileX, tileZ);
+
+                    // Immediately regenerate with current detector
+                    var chunkCoords = new Vec2i(tileX / 2, tileZ / 2);
+                    var chunk = sapi.World.BlockAccessor.GetMapChunk(chunkCoords);
+                    if (chunk != null)
+                    {
+                        int newBiomeId = biomeDetector.GetBiomeID(chunk, chunkCoords, tileX, tileZ);
+                        if (newBiomeId != -1)
+                        {
+                            mapData.SetTile(tileX, tileZ, new Tile(newBiomeId));
+                            count++;
+                        }
+                    }
+
+                    // Clear seen state in all atlases so tile gets re-sent to client
+                    foreach (var kvp in ServerSeenChunksByAtlases)
+                    {
+                        kvp.Value.SetTile(tileX, tileZ, false);
+                    }
+                }
+            }
+
+            return TextCommandResult.Success($"Regenerated {count} tiles (radius {radius}).");
+        }
+
         public override void StartClientSide(ICoreClientAPI api)
         {
             //Environment.SetEnvironmentVariable("CAIRO_DEBUG_DISPOSE", "1");
@@ -467,7 +547,7 @@ namespace CANAntiqueAtlas
             }
             else
             {
-                string[] jsonFiles = Directory.GetFiles(folderPath, "*.json", SearchOption.TopDirectoryOnly);
+                string[] jsonFiles = Directory.GetFiles(folderPath, "*bioms.json", SearchOption.TopDirectoryOnly);
 
                 foreach (string file in jsonFiles)
                 {
@@ -506,41 +586,99 @@ namespace CANAntiqueAtlas
         private void LoadFinalSelectionPriority(ICoreServerAPI api)
         {
             string folderPath = Path.Combine(GamePaths.ModConfig, "canantiqueatlas");
-            if (File.Exists(Path.Combine(folderPath, "default_final_selection_priority.json")))
+            string filePath = Path.Combine(folderPath, "default_final_selection_priority.json");
+
+            // Defaults: high-priority biomes that should override landform refinements
+            // when their marker blocks are actually present in the chunk.
+            var defaults = new Dictionary<string, float>() {
+                {"Water", 2f },
+                {"Swamp", 2f },
+                {"HotSpring", 1f },
+                {"Redwood", 0.99f },
+                {"Jungle", 0.99f }
+            };
+
+            Dictionary<string, float> dict;
+            if (File.Exists(filePath))
             {
-                string jsonText = File.ReadAllText(Path.Combine(folderPath, "default_final_selection_priority.json"));
-                //File.WriteAllText(Path.Combine(folderPath, "default_final_selection_priority.json"), JsonSerializer.Serialize(new Dictionary<int, float>() { { 1, 0.1f }, { 2, 2f } }));
-                var dict = JsonSerializer.Deserialize<Dictionary<string, float>>(jsonText);
-                Dictionary<int, float> priorityDict = new();
-                foreach(var it in dict)
+                string jsonText = File.ReadAllText(filePath);
+                dict = JsonConvert.DeserializeObject<Dictionary<string, float>>(jsonText) ?? new();
+                bool changed = false;
+                foreach (var kv in defaults)
                 {
-                    if(CANAntiqueAtlas.BiomesMapping.TryGetValue(it.Key, out var biomeId))
+                    if (!dict.ContainsKey(kv.Key))
                     {
-                        priorityDict[biomeId] = it.Value;
+                        dict[kv.Key] = kv.Value;
+                        changed = true;
                     }
                 }
-                biomeDetector.AddToFinalPriorityMap(priorityDict);
+                if (changed)
+                {
+                    File.WriteAllText(filePath, JsonConvert.SerializeObject(dict));
+                }
             }
             else
             {
-                var tmpDict = new Dictionary<string, float>() {
-                        {"HotSpring", 1 },
-                        {"Redwood", 0.99f },
-                        {"Jungle", 0.99f }
-                    };
-                File.WriteAllText(Path.Combine(folderPath, "default_final_selection_priority.json"),
-                    JsonSerializer.Serialize(tmpDict));
-                Dictionary<int, float> priorityDict = new();
-                foreach (var it in tmpDict)
+                dict = defaults;
+                File.WriteAllText(filePath, JsonConvert.SerializeObject(dict));
+            }
+
+            Dictionary<int, float> priorityDict = new();
+            foreach (var it in dict)
+            {
+                if (CANAntiqueAtlas.BiomesMapping.TryGetValue(it.Key, out var biomeId))
                 {
-                    if (CANAntiqueAtlas.BiomesMapping.TryGetValue(it.Key, out var biomeId))
+                    priorityDict[biomeId] = it.Value;
+                }
+            }
+            biomeDetector.AddToFinalPriorityMap(priorityDict);
+        }
+        private LandformBiomeConfig LoadLandformBiomeConfig(ICoreServerAPI api)
+        {
+            string folderPath = Path.Combine(GamePaths.ModConfig, "canantiqueatlas");
+            string filePath = Path.Combine(folderPath, "landform_mapping.json");
+
+            // Try loading from ModConfig first (user-customized)
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    string json = File.ReadAllText(filePath);
+                    var config = JsonConvert.DeserializeObject<LandformBiomeConfig>(json);
+                    if (config != null)
                     {
-                        priorityDict[biomeId] = it.Value;
+                        sapi.Logger.Notification("[CANAntiqueAtlas] Loaded landform_mapping.json from ModConfig.");
+                        return config;
                     }
                 }
-                biomeDetector.AddToFinalPriorityMap(priorityDict);
+                catch (Exception ex)
+                {
+                    sapi.Logger.Error("[CANAntiqueAtlas] Failed to load landform_mapping from ModConfig: {0}", ex.Message);
+                }
             }
+
+            // Fall back to loading from mod assets and write a copy to ModConfig
+            Dictionary<AssetLocation, JToken> many = api.Assets.GetMany<JToken>(api.Server.Logger, "config/conditions/landform_mapping");
+            foreach (var val in many)
+            {
+                try
+                {
+                    var config = val.Value.ToObject<LandformBiomeConfig>();
+                    Directory.CreateDirectory(folderPath);
+                    File.WriteAllText(filePath, val.Value.ToString(Newtonsoft.Json.Formatting.Indented));
+                    sapi.Logger.Notification("[CANAntiqueAtlas] Loaded landform_mapping.json from assets, saved copy to ModConfig.");
+                    return config;
+                }
+                catch (Exception ex)
+                {
+                    sapi.Logger.Error("[CANAntiqueAtlas] Failed to load landform_mapping from assets: {0}", ex.Message);
+                }
+            }
+
+            sapi.Logger.Warning("[CANAntiqueAtlas] No landform_mapping.json found — landform detector will use fallback.");
+            return null;
         }
+
         public override void Dispose()
         {
             base.Dispose();

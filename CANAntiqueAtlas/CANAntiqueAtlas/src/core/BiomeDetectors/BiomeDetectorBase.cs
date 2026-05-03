@@ -59,7 +59,15 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                     
                     blockCoords.Y = ch;
                     var tmpBlock = CANAntiqueAtlas.sapi.World.BlockAccessor.GetBlock(blockCoords);
-                    
+
+                    // Water blocks are rain-permeable, so rain height points to the solid floor
+                    // under the water. Check one block above to detect water bodies.
+                    var blockAbove = CANAntiqueAtlas.sapi.World.BlockAccessor.GetBlock(blockCoords.UpCopy());
+                    if (blockAbove.Code.Path.StartsWith("water") || blockAbove.Code.Path.StartsWith("saltwater"))
+                    {
+                        tmpBlock = blockAbove;
+                    }
+
                     Block block = tmpBlock;
                     int i = 0;
                     var tmpCoords = blockCoords.Copy();
@@ -70,10 +78,7 @@ namespace CANAntiqueAtlas.src.core.BiomeDetectors
                             tmpCoords.Y -= 1;
                             tmpBlock = CANAntiqueAtlas.sapi.World.BlockAccessor.GetBlock(tmpCoords);
                             i++;
-                            if (tmpBlock.Code.Path.Contains("air"))
-                            {
-                                block = tmpBlock;
-                            }
+                            block = tmpBlock;
                         }
 
                     }

@@ -1,0 +1,104 @@
+{
+  "LandformToBiome": {
+    "largeislands": "Plains",
+    "islandchess": "Plains",
+    "largelake": "Plains",
+    "smallshallowislands": "Plains",
+    "cliffislands": "Plains",
+    "smallcliffislands": "Plains",
+    "mediumseapillars": "Plains",
+    "realisticmountains": "Mountains",
+    "realisticmountains-ledged": "Mountains",
+    "realisticmountains-quintupleledged": "Mountains",
+    "realistic mountains": "Mountains",
+    "cold glaciers": "Mountains",
+    "cold mountain range": "Mountains",
+    "humongous mountain": "Mountains",
+    "humongous mountain, cavernless": "Mountains",
+    "deep water step mountains": "Mountains",
+    "step mountains": "Mountains",
+    "shallowmillionstepmountains": "Hills",
+    "mediummillionstepmountains": "Plateau",
+    "tallmillionstepmountains": "Mountains",
+    "mediumlandpillars": "Plateau",
+    "mountain": "Mountains",
+    "highmountain": "Mountains",
+    "shallowislands": "Hills",
+
+    "densecliffyswamplands": "Swamp",
+    "sparsecliffyswamplands": "Hills",
+    "deathmarsh": "Swamp",
+    "bumpy marsh": "Swamp",
+    "flatmarsh": "Swamp",
+    "marsh": "Swamp",
+
+    "hillplateu": "Plateau",
+    "elevatedveryflat": "Plains",
+    "smallsealevelplateus": "Plateau",
+    "highlands": "Plateau",
+    "plateau": "Plateau",
+
+    "cliffy rolling hills": "Hills",
+    "lowrollinghills": "Hills",
+    "rollinghills": "Hills",
+    "steppedsinkholes": "Hills",
+    "siberiansinkholes": "Hills",
+    "roughlabyrinth": "Hills",
+    "supersmoothills": "Hills",
+    "crbumplands": "Hills",
+    "roundclifflandshilly": "Hills",
+    "flathillvalley": "Hills",
+    "hillsflatsandislands": "Hills",
+    "lowhill": "Hills",
+    "hill": "Hills",
+    "cliff": "Hills",
+
+    "realisticflatlands": "Plains",
+    "needledflatlands": "Plains",
+    "roughflatlands": "Plains",
+    "superflatrarebumps": "Plains",
+    "veryflat": "Plains",
+    "veryflatmanybumps": "Plains",
+    "flatmanybumps": "Plains",
+    "above sealevel flat grasslands": "Plains",
+    "plains": "Plains",
+    "flat": "Plains",
+    "lowlands": "Plains",
+    "chaotic": "Mountains"
+  },
+    "Refinements": {
+        "DenseForest": {
+            "MinForestMapValue": 100,
+            "BaseBiomes": [ "Plains", "Hills", "Plateau" ],
+            "ResultBiome": "TemperateForest",
+            "Priority": 1
+        },
+        "SparseForest": {
+            "MinForestMapValue": 40,
+            "MaxForestMapValue": 100,
+            "BaseBiomes": [ "Plains", "Hills" ],
+            "ResultBiome": "SparseForest",
+            "Priority": 0.5
+        },
+        "Desert": {
+            "MaxForestMapValue": 20,
+            "MaxRainfall": 0.3,
+            "BaseBiomes": [ "Plains" ],
+            "ResultBiome": "Desert",
+            "Priority": 2
+        },
+        "SnowCaps": {
+            "MinTerrainHeight": 0.625,
+            "MaxTemperature": -5,
+            "BaseBiomes": [ "Mountains" ],
+            "ResultBiome": "MountainsSnowCaps",
+            "Priority": 3
+        },
+        "ElevatedPlainsToPlateauRefine": {
+            "MinTerrainHeight": 0.54,
+            "BaseBiomes": [ "Plains" ],
+            "ResultBiome": "Plateau",
+            "Priority": 0.3
+        }
+    }
+}

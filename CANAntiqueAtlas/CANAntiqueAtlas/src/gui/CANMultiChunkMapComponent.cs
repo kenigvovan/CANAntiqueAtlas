@@ -102,13 +102,15 @@ namespace CANAntiqueAtlas.src.gui
             byte[] data = capi.Assets.Get("canantiqueatlas:textures/gui/tiles/nothing.png").Data;
             BitmapExternal bitmapExternal = capi.Render.BitmapCreateFromPng(data);
             this.capi.Render.LoadOrUpdateTextureFromRgba(bitmapExternal.Pixels, false, 0, ref this.Texture);
+            bitmapExternal.Dispose();
 
             var texSet = CANAntiqueAtlas.biomeTextureMap.getTextureSet(mapPieace.Biome[0]);
             
             LoadedTexture src = new(capi);
 
-            var c = Math.Floor(mapPieace.VariationNumber[0] / (float)short.MaxValue * texSet.textures.Length);
-            capi.Render.GetOrLoadTexture(texSet.textures[(int)c].ToString(), ref src);
+            var c = Math.Floor(Math.Abs(mapPieace.VariationNumber[0]) / (float)short.MaxValue * texSet.textures.Length);
+            int idx = Math.Clamp((int)c, 0, texSet.textures.Length - 1);
+            capi.Render.GetOrLoadTexture(texSet.textures[idx].ToString(), ref src);
             //capi.Render.GetOrLoadTexture("canantiqueatlas:gui/tiles/test.png", ref src);
 
             int v = 0, u = 0;
@@ -127,8 +129,9 @@ namespace CANAntiqueAtlas.src.gui
             
             LoadedTexture src2 = new(capi);
             texSet = CANAntiqueAtlas.biomeTextureMap.getTextureSet(mapPieace.Biome[1]);
-            c = Math.Floor(mapPieace.VariationNumber[1] / (float)short.MaxValue * texSet.textures.Length);
-            capi.Render.GetOrLoadTexture(texSet.textures[(int)c].ToString(), ref src2);
+            c = Math.Floor(Math.Abs(mapPieace.VariationNumber[1]) / (float)short.MaxValue * texSet.textures.Length);
+            idx = Math.Clamp((int)c, 0, texSet.textures.Length - 1);
+            capi.Render.GetOrLoadTexture(texSet.textures[idx].ToString(), ref src2);
             
             qua = quas[1];
             for (int i = 0; i < 2; i++)
@@ -142,8 +145,9 @@ namespace CANAntiqueAtlas.src.gui
             
             LoadedTexture src3 = new(capi);
             texSet = CANAntiqueAtlas.biomeTextureMap.getTextureSet(mapPieace.Biome[2]);
-            c = Math.Floor(mapPieace.VariationNumber[2] / (float)short.MaxValue * texSet.textures.Length);
-            capi.Render.GetOrLoadTexture(texSet.textures[(int)c].ToString(), ref src3);
+            c = Math.Floor(Math.Abs(mapPieace.VariationNumber[2]) / (float)short.MaxValue * texSet.textures.Length);
+            idx = Math.Clamp((int)c, 0, texSet.textures.Length - 1);
+            capi.Render.GetOrLoadTexture(texSet.textures[idx].ToString(), ref src3);
             qua = quas[2];
             for (int i = 0; i < 2; i++)
             for (int j = 0; j < 2; j++)
@@ -157,8 +161,9 @@ namespace CANAntiqueAtlas.src.gui
             LoadedTexture src4 = new(capi);
 
             texSet = CANAntiqueAtlas.biomeTextureMap.getTextureSet(mapPieace.Biome[3]);
-            c = Math.Floor(mapPieace.VariationNumber[3]/ (float)short.MaxValue * texSet.textures.Length);
-            capi.Render.GetOrLoadTexture(texSet.textures[(int)c].ToString(), ref src4);
+            c = Math.Floor(Math.Abs(mapPieace.VariationNumber[3]) / (float)short.MaxValue * texSet.textures.Length);
+            idx = Math.Clamp((int)c, 0, texSet.textures.Length - 1);
+            capi.Render.GetOrLoadTexture(texSet.textures[idx].ToString(), ref src4);
             for (int i = 0; i < 2; i++)
                 for (int j = 0; j < 2; j++)
                 {
